@@ -54,7 +54,6 @@ nohup.out
 secrets.json
 
 #🔄 Git & Deployment
-.git/
 *.pem
 *.crt
 *.key
