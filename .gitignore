@@ -1,0 +1,60 @@
+#💾 Python & Django
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+db.sqlite3
+.env
+*.env
+venv/
+env/
+instance/
+.mypy_cache/
+.coverage
+htmlcov/
+*.log
+logs/
+media/
+staticfiles/
+
+#🚀 Django Migrations
+**/migrations/*.py
+!**/migrations/__init__.py
+
+# 📦 Node.js & React
+node_modules/
+npm-debug.log*
+yarn-error.log
+.pnp/
+.pnp.js
+.next/  # если Next.js
+out/
+dist/
+build/
+.DS_Store
+
+#⚙️ IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# ⚙️ Logs & Debugging
+debug.log
+*.log
+logs/
+nohup.out
+
+#⚡ Env & Secrets
+.env
+*.env
+secrets.json
+
+#🔄 Git & Deployment
+.git/
+*.pem
+*.crt
+*.key
