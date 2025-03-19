@@ -41,7 +41,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'InstagramClone.urls'
+ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
     {
