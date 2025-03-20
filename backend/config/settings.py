@@ -10,10 +10,12 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+AUTH_USER_MODEL = 'users.User'
 
 INSTALLED_APPS = [
     'apps.users',
     'apps.posts',
+    'apps.chat',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
