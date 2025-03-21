@@ -5,8 +5,8 @@ from apps.common.models import AbstractModel
 
 class Post(AbstractModel):
     image = models.ImageField(upload_to='posts/', null=True, blank=True)
-    text = models.TextField(null=False, blank=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=False, blank=True)
+    text = models.TextField(null=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=False, related_name='posts')
 
     def __str__(self):
         return f'Post {self.id} by {self.user}'

@@ -12,5 +12,5 @@ urlpatterns = [
     path('user/register/', views.UserRegisterView.as_view()),
 
     path('posts/all/', views.PostListView.as_view()),
-    path('posts/create/', views.PostCRUDByUser.as_view()),
+    path('posts/create/', views.PostCreate.as_view()),
 ]

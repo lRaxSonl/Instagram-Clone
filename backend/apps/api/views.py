@@ -1,8 +1,8 @@
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .serializer import PostSerializer, UserRegisterSerializer, CustomTokenObtainPairSerializer
+from .serializer import PostSerializer, UserRegisterSerializer, CustomTokenObtainPairSerializer, PostCreateSerializer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -21,14 +21,9 @@ class PostListView(APIView):
         return Response(serializer.data)
 
 
-class PostCRUDByUser(APIView):
-    def get(self, request):
-        posts = Post.objects.filter(user_id=request.user.id)
-        serializer = PostSerializer(posts, many=True)
-        return Response(serializer.data)
-
+class PostCreate(APIView):
     def post(self, request):
-        serializer = PostSerializer(data=request.data)
+        serializer = PostCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)

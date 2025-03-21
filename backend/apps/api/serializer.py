@@ -2,6 +2,7 @@ from django.contrib.auth.hashers import make_password
 from django.utils.timezone import now
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from tutorial.quickstart.serializers import UserSerializer
 
 from apps.posts.models import Post
 from apps.users.models import User
@@ -23,22 +24,27 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     #     return data
 
 
-
+"""TODO: Разобраться как это работает"""
 #Post list
 class PostSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
     class Meta:
         model = Post
         fields = '__all__'
 
 
-#Post CRUD by user
-class PostCRUDByUserSerializer(serializers.ModelSerializer):
+
+#Post create
+class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = '__all__'
 
     def create(self, validated_data):
         return super().create(validated_data)
+
+
 
 
 #Registration serializer
