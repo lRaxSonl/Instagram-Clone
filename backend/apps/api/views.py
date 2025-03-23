@@ -1,10 +1,10 @@
 from rest_framework import status
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .serializer import (PostSerializer, CustomTokenObtainPairSerializer, PostCreateSerializer,
-                         UserSerializer)
+from .serializer import PostSerializer, CustomTokenObtainPairSerializer, UserSerializer
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -26,14 +26,27 @@ class PostListView(APIView):
         return Response(serializer.data)
 
 
-class PostCreate(APIView):
+class PostCreateView(APIView):
     def post(self, request):
-        serializer = PostCreateSerializer(data=request.data)
+        serializer = PostSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+class PostUpdateView(UpdateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_update(self, serializer):
+        post = self.get_object()
+
+        if post.user != self.request.user:
+            raise PermissionDenied("You can edit only your own post")
+
+        serializer.save()
 
 class UserRegisterView(APIView):
     def post(self, request):
@@ -66,3 +79,12 @@ class UserUpdateView(UpdateAPIView):
 #             serializer.save()
 #             return Response(serializer.data, status=status.HTTP_200_OK)
 #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get_object(self):
+        return self.request.user

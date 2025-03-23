@@ -10,7 +10,11 @@ urlpatterns = [
 
 
     path('user/register/', views.UserRegisterView.as_view()),
+    path('user/update/', views.UserUpdateView.as_view()),
+    path('user/delete/', views.UserDeleteView.as_view()),
 
-    path('posts/all/', views.PostListView.as_view()),
-    path('posts/create/', views.PostCreate.as_view()),
+    path('posts/', views.PostListView.as_view()),
+    path('posts/create/', views.PostCreateView.as_view()),
+
+    path('posts/update/<pk>/', views.PostUpdateView.as_view()),
 ]

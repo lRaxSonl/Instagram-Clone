@@ -1,9 +1,9 @@
 from django.contrib.auth.hashers import make_password
+from django.template.context_processors import request
 from django.utils.timezone import now
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from tutorial.quickstart.serializers import UserSerializer
-
 from apps.posts.models import Post
 from apps.users.models import User
 
@@ -27,23 +27,31 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 """TODO: Разобраться как это работает"""
 #Post list
 class PostSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Post
         fields = '__all__'
 
 
-
-#Post create
-class PostCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Post
-        fields = '__all__'
 
     def create(self, validated_data):
         return super().create(validated_data)
 
+    def update(self, instance, validated_data):
+        request = self.context.get('request')
+
+        if not request.user or not request.user.is_authenticated:
+            raise serializers.ValidationError("You are not authenticated")
+
+        if instance.user != request.user:
+            raise serializers.ValidationError("You can only edit your own posts")
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value) #обновляет поле attr новым значением value.
+
+        instance.save()
+        return instance
 
 
 
@@ -86,4 +94,12 @@ class UserSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
 
         instance.save()
+        return instance
+
+
+    def delete(self, instance, validated_data):
+        request = self.context.get('request')
+        if request and request.user != instance.user:
+            raise serializers.ValidationError('You can only delete your own account.')
+        instance.delete()
         return instance
