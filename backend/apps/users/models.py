@@ -34,6 +34,7 @@ class User(AbstractBaseUser):
 
     email = models.EmailField(max_length=255, unique=True)
     username = models.CharField(max_length=255)
+    avatar = models.ImageField(upload_to='avatars', null=True)
     is_active = models.BooleanField(default=True)
     role = models.CharField(max_length=255, choices=ROLE_CHOICES, default='user')
     created_at = models.DateTimeField(auto_now_add=True)
