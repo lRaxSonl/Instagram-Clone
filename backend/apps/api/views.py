@@ -1,15 +1,16 @@
-from rest_framework import status
+from django.views.generic import CreateView
+from rest_framework import status, viewsets
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.generics import UpdateAPIView
+from rest_framework.generics import UpdateAPIView, CreateAPIView, get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .serializer import PostSerializer, CustomTokenObtainPairSerializer, UserSerializer
+from .serializer import PostSerializer, CustomTokenObtainPairSerializer, UserSerializer, CommentSerializer
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.posts.models import Post
+from apps.posts.models import Post, Comment
 from ..users.models import User
 
 
@@ -90,3 +91,30 @@ class UserDeleteView(APIView):
 
     def get_object(self):
         return self.request.user
+
+
+class PostCommentsView(APIView):
+    def get(self, request, post_id):
+        comments = Comment.objects.filter(post_id=post_id, parent__isnull=True)
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class PostCommentsCreateView(CreateAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        post_id = self.kwargs.get("post_id")
+        post = get_object_or_404(Post, id=post_id)
+        serializer.save(user=self.request.user, post=post)
+
+
+class CommentRepliesCreateView(CreateAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        comment_id = self.kwargs.get("comment_id")
+        parent = get_object_or_404(Comment, id=comment_id)
+        serializer.save(user=self.request.user, parent=parent)

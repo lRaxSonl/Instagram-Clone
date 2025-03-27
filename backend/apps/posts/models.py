@@ -15,14 +15,19 @@ class Post(AbstractModel):
 class Comment(AbstractModel):
     text = models.TextField(null=False, blank=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True)
+    parent = models.ForeignKey('self', null=True,
+                               related_name='replies', on_delete=models.CASCADE)
+
 
     def __str__(self):
         return f'Comment {self.id} by {self.user}'
 
 
 class Like(AbstractModel):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=False)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True)
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return f'Like for post {self.post.id} by {self.user}'

@@ -1,10 +1,11 @@
 from django.contrib.auth.hashers import make_password
+from django.db.migrations import serializer
 from django.template.context_processors import request
 from django.utils.timezone import now
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from tutorial.quickstart.serializers import UserSerializer
-from apps.posts.models import Post
+from apps.posts.models import Post, Comment
 from apps.users.models import User
 
 
@@ -24,7 +25,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     #     return data
 
 
-"""TODO: Разобраться как это работает"""
+
 #Post list
 class PostSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -103,3 +104,73 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('You can only delete your own account.')
         instance.delete()
         return instance
+
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    replies = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'user', 'text', 'post', 'parent', 'replies']
+
+
+    def get_replies(self, obj):
+        replies = obj.replies.all()
+        return CommentSerializer(replies, many=True).data
+
+    def validate(self, validated_data):
+        post = validated_data.get('post')
+        parent = validated_data.get('parent')
+
+        if not post and not parent:
+            raise serializers.ValidationError("You have to specify a post or a replies.")
+
+        return validated_data
+
+
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        user = getattr(request, "user", None)
+
+        if not user or not user.is_authenticated:
+            raise serializers.ValidationError("You are not authenticated")
+
+        post = validated_data.get('post')
+        parent = validated_data.get('parent')
+
+        if not post and not parent:
+            raise serializers.ValidationError("You have to specify a post or a replies.")
+
+        validated_data['user'] = user
+
+        return Comment.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        request = self.context.get('request')
+        user = getattr(request, "user", None)
+
+        if not user or not user.is_authenticated:
+            raise serializers.ValidationError("You are not authenticated")
+
+        if instance.user != user:
+            raise serializers.ValidationError("You can only edit your own comments.")
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+
+    def delete(self, instance):
+        request = self.context.get('request')
+        user = getattr(request, "user", None)
+
+        if not user or not user.is_authenticated:
+            raise serializers.ValidationError("You are not authenticated")
+
+        if instance.user != user:
+            raise serializers.ValidationError("You can only delete your own comments.")
+
+        instance.delete()
