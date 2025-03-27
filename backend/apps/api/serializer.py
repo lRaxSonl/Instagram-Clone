@@ -77,8 +77,6 @@ class UserSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        """Создание пользователя с хешированным паролем."""
-        validated_data['password'] = make_password(validated_data.pop('password', None))
         return User.objects.create_user(**validated_data)
 
     def update(self, instance, validated_data):
@@ -86,7 +84,7 @@ class UserSerializer(serializers.ModelSerializer):
 
         request = self.context.get('request') #Получаем запрос
 
-        if request and request.user != instance.user:
+        if request.user != instance.user:
             raise serializers.ValidationError('You can only update your own account.')
 
         for attr, value in validated_data.items():
@@ -100,7 +98,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def delete(self, instance, validated_data):
         request = self.context.get('request')
-        if request and request.user != instance.user:
+        if request.user != instance.user:
             raise serializers.ValidationError('You can only delete your own account.')
         instance.delete()
         return instance
@@ -121,8 +119,8 @@ class CommentSerializer(serializers.ModelSerializer):
         return CommentSerializer(replies, many=True).data
 
     def validate(self, validated_data):
-        post = validated_data.get('post')
-        parent = validated_data.get('parent')
+        post = self.context.get("post")
+        parent = self.context.get("parent")
 
         if not post and not parent:
             raise serializers.ValidationError("You have to specify a post or a replies.")
@@ -138,11 +136,11 @@ class CommentSerializer(serializers.ModelSerializer):
         if not user or not user.is_authenticated:
             raise serializers.ValidationError("You are not authenticated")
 
-        post = validated_data.get('post')
-        parent = validated_data.get('parent')
-
-        if not post and not parent:
-            raise serializers.ValidationError("You have to specify a post or a replies.")
+        # post = validated_data.get('post')
+        # parent = validated_data.get('parent')
+        #
+        # if not post and not parent:
+        #     raise serializers.ValidationError("You have to specify a post or a replies.")
 
         validated_data['user'] = user
 

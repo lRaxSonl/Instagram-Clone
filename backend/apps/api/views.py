@@ -104,17 +104,33 @@ class PostCommentsCreateView(CreateAPIView):
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
+
+
+    def get_serializer_context(self):
+        """Добавляем post в контекст сериализатора"""
+        context = super().get_serializer_context()
         post_id = self.kwargs.get("post_id")
         post = get_object_or_404(Post, id=post_id)
-        serializer.save(user=self.request.user, post=post)
+        context["post"] = post
+        return context
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user, post=self.get_serializer_context()["post"])
 
 
 class CommentRepliesCreateView(CreateAPIView):
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
 
+
+    def get_serializer_context(self):
+        """Добавляем parent в контекст сериализатора"""
+        context = super().get_serializer_context()
+        parent_id = self.kwargs.get("parent_id")
+        parent = get_object_or_404(Comment, id=parent_id)
+        context["parent"] = parent
+        return context
+
     def perform_create(self, serializer):
-        comment_id = self.kwargs.get("comment_id")
-        parent = get_object_or_404(Comment, id=comment_id)
-        serializer.save(user=self.request.user, parent=parent)
+        parent = self.get_serializer_context()['parent']
+        serializer.save(user=self.request.user, parent=parent, post=parent.post)

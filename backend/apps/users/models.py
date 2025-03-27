@@ -10,17 +10,20 @@ class UserManager(BaseUserManager):
             raise ValueError('Users must have an email address')
         if not username:
             raise ValueError('Users must have a username')
-        user = self.model(username=username, email=self.normalize_email(email))
+
+        extra_fields.setdefault('role', 'user')
+        extra_fields.setdefault('is_active', True)
+
+        user = self.model(username=username, email=self.normalize_email(email), **extra_fields)
         user.set_password(password)
-        user.role = 'user'
-        user.is_active = True
         user.save(using=self._db)
         return user
 
-    def create_admin(self, username, email, password):
-        user = self.model(username=username, email=email, password=password)
-        user.role = 'admin'
-        user.is_admin = True
+    def create_admin(self, username, email, password, **extra_fields):
+        extra_fields.setdefault('role', 'admin')
+        extra_fields.setdefault('is_active', True)
+        user = self.model(username=username, email=email, **extra_fields)
+        user.set_password(password)
         user.save(using=self._db)
         return user
 
