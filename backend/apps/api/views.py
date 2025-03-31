@@ -86,11 +86,13 @@ class UserUpdateView(UpdateAPIView):
 
 class UserDeleteView(APIView):
     permission_classes = [IsAuthenticated]
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
 
-    def get_object(self):
-        return self.request.user
+
+    def delete(self, request):
+        user = self.request.user
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 
 class PostCommentsView(APIView):
@@ -116,6 +118,39 @@ class PostCommentsCreateView(CreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user, post=self.get_serializer_context()["post"])
+
+
+class CommentsUpdateView(UpdateAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Comment.objects.all()
+
+    def get_object(self):
+        return super().get_object()
+
+    def perform_update(self, serializer):
+        comment = self.get_object()
+        if comment.user != self.request.user:
+            raise PermissionDenied("You can edit only your own comment")
+
+        serializer.save()
+
+
+class CommentsDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+
+    def delete(self, request, comment_id):
+        comment = get_object_or_404(Comment, id=comment_id)
+
+        if comment.user != self.request.user:
+            raise PermissionDenied("You can edit only your own comments")
+
+        comment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
 
 
 class CommentRepliesCreateView(CreateAPIView):

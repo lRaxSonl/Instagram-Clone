@@ -96,14 +96,6 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 
-    def delete(self, instance, validated_data):
-        request = self.context.get('request')
-        if request.user != instance.user:
-            raise serializers.ValidationError('You can only delete your own account.')
-        instance.delete()
-        return instance
-
-
 
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -121,9 +113,11 @@ class CommentSerializer(serializers.ModelSerializer):
     def validate(self, validated_data):
         post = self.context.get("post")
         parent = self.context.get("parent")
+        request = self.context.get('request')
 
-        if not post and not parent:
-            raise serializers.ValidationError("You have to specify a post or a replies.")
+        if request and request.method == 'POST':
+            if not post and not parent:
+                raise serializers.ValidationError("You have to specify a post or a replies.")
 
         return validated_data
 
@@ -160,15 +154,4 @@ class CommentSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
 
         instance.save()
-
-    def delete(self, instance):
-        request = self.context.get('request')
-        user = getattr(request, "user", None)
-
-        if not user or not user.is_authenticated:
-            raise serializers.ValidationError("You are not authenticated")
-
-        if instance.user != user:
-            raise serializers.ValidationError("You can only delete your own comments.")
-
-        instance.delete()
+        return instance
