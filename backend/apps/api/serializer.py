@@ -30,6 +30,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 #Post list
 class PostSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
+    likes = serializers.PrimaryKeyRelatedField(many=True, required=False, read_only=True)
 
     class Meta:
         model = Post
@@ -38,6 +39,7 @@ class PostSerializer(serializers.ModelSerializer):
     def get_likes(self, obj):
         likes = Like.objects.filter()
         return LikeSerializer(likes, many=True).data
+        #return obj.likes.values_list('user_id', flat=True)
 
     def create(self, validated_data):
         return super().create(validated_data)
@@ -167,7 +169,9 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class LikeSerializer(serializers.ModelSerializer):
-    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault(), required=False)
+    comment = serializers.PrimaryKeyRelatedField(required=False, read_only=True)
+    post = serializers.PrimaryKeyRelatedField(required=False, read_only=True)
 
     class Meta:
         model = Like
@@ -183,10 +187,16 @@ class LikeSerializer(serializers.ModelSerializer):
         post = validated_data.get("post")
         comment = validated_data.get("comment")
 
-        if post and Like.objects.filter(user=user, post=post).exists():
+        if not post and not comment:
+            raise serializers.ValidationError("You must specify either a post or a comment to like.")
+
+        if post and comment:
+            raise serializers.ValidationError("You cannot like both a post and a comment at the same time.")
+
+        if post and Like.objects.filter(user=user, post=post).first():
             raise serializers.ValidationError("You have already liked this post.")
 
-        if comment and Like.objects.filter(user=user, comment=comment).exists():
+        if comment and Like.objects.filter(user=user, comment=comment).first():
             raise serializers.ValidationError("You have already liked this comment.")
 
 
