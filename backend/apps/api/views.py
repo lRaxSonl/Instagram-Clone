@@ -1,16 +1,17 @@
 from django.views.generic import CreateView
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, serializers
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import UpdateAPIView, CreateAPIView, get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .serializer import PostSerializer, CustomTokenObtainPairSerializer, UserSerializer, CommentSerializer
+from .serializer import PostSerializer, CustomTokenObtainPairSerializer, UserSerializer, CommentSerializer, \
+    LikeSerializer
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.posts.models import Post, Comment
+from apps.posts.models import Post, Comment, Like
 from ..users.models import User
 
 
@@ -50,6 +51,21 @@ class PostUpdateView(UpdateAPIView):
             raise PermissionDenied("You can edit only your own post")
 
         serializer.save()
+
+class PostDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+
+    def delete(self, request, post_id):
+        post = get_object_or_404(Post, id=post_id)
+
+        if post.user != self.request.user:
+            raise PermissionDenied("You can edit only your own posts")
+
+        post.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 
 class UserRegisterView(APIView):
     def post(self, request):
@@ -105,8 +121,6 @@ class PostCommentsView(APIView):
 class PostCommentsCreateView(CreateAPIView):
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
-
-
 
     def get_serializer_context(self):
         """Добавляем post в контекст сериализатора"""
@@ -169,3 +183,53 @@ class CommentRepliesCreateView(CreateAPIView):
     def perform_create(self, serializer):
         parent = self.get_serializer_context()['parent']
         serializer.save(user=self.request.user, parent=parent, post=parent.post)
+
+
+
+# class LikeView(APIView):
+#     permission_classes = [IsAuthenticated]
+#
+#     def get(self, request, post_id):
+#         post = get_object_or_404(Post, id=post_id)
+#
+#         comments = Like.objects.filter(post=post_id)
+#         serializer = LikeSerializer(comments, many=True)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class LikeCreateView(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = LikeSerializer
+
+    def perform_create(self, serializer):
+        post_id = self.kwargs.get("post_id")
+        comment_id = self.kwargs.get("comment_id")
+        user = self.request.user
+
+        post = Post.objects.filter(id=post_id).first()
+        comment = Comment.objects.filter(id=comment_id).first()
+
+        if not post and not comment:
+            raise serializers.ValidationError("You have to specify a valid post or a comment.")
+
+        if post and Like.objects.filter(user=user, post=post).exists():
+            raise serializers.ValidationError("You have already liked this post.")
+
+        if comment and Like.objects.filter(user=user, comment=comment).exists():
+            raise serializers.ValidationError("You have already liked this comment.")
+
+        serializer.save(user=user, post=post, comment=comment)
+
+
+class LikeDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, like_id):
+        like = get_object_or_404(Like, id=like_id)
+
+        if like.user != self.request.user:
+            raise PermissionDenied("You can edit only your own like")
+
+        like.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+

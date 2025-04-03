@@ -3,9 +3,10 @@ from django.db.migrations import serializer
 from django.template.context_processors import request
 from django.utils.timezone import now
 from rest_framework import serializers
+from rest_framework.response import Response
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from tutorial.quickstart.serializers import UserSerializer
-from apps.posts.models import Post, Comment
+from apps.posts.models import Post, Comment, Like
 from apps.users.models import User
 
 
@@ -25,16 +26,18 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     #     return data
 
 
-
+#TODO: fix likes
 #Post list
 class PostSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Post
-        fields = '__all__'
+        fields = ('id', 'text', 'image', 'user', 'created_at', 'updated_at', 'likes')
 
-
+    def get_likes(self, obj):
+        likes = Like.objects.filter()
+        return LikeSerializer(likes, many=True).data
 
     def create(self, validated_data):
         return super().create(validated_data)
@@ -100,15 +103,20 @@ class UserSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
     replies = serializers.SerializerMethodField()
+    likes = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ['id', 'user', 'text', 'post', 'parent', 'replies']
+        fields = ['id', 'user', 'text', 'post', 'parent', 'replies', 'likes']
 
 
     def get_replies(self, obj):
         replies = obj.replies.all()
         return CommentSerializer(replies, many=True).data
+
+    def get_likes(self, obj):
+        likes = obj.likes.all()
+        return LikeSerializer(likes, many=True).data
 
     def validate(self, validated_data):
         post = self.context.get("post")
@@ -155,3 +163,32 @@ class CommentSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+
+
+class LikeSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = Like
+        fields = '__all__'
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        user = request.user if request else None
+
+        if not request.user or not user.is_authenticated:
+            raise serializers.ValidationError("You are not authenticated")
+
+        post = validated_data.get("post")
+        comment = validated_data.get("comment")
+
+        if post and Like.objects.filter(user=user, post=post).exists():
+            raise serializers.ValidationError("You have already liked this post.")
+
+        if comment and Like.objects.filter(user=user, comment=comment).exists():
+            raise serializers.ValidationError("You have already liked this comment.")
+
+
+        validated_data["user"] = user
+        return super().create(validated_data)

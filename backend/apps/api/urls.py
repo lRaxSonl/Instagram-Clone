@@ -15,12 +15,17 @@ urlpatterns = [
 
     path('posts/', views.PostListView.as_view()),
     path('posts/create/', views.PostCreateView.as_view()),
+    path('posts/update/<pk>/', views.PostUpdateView.as_view()),
+    path('posts/delete/<post_id>/', views.PostDeleteView.as_view()),
     path('posts/<int:post_id>/comments/', views.PostCommentsView.as_view()),
     path('posts/<int:post_id>/comments/create/', views.PostCommentsCreateView.as_view()),
     path('comments/<int:parent_id>/reply/create/', views.CommentRepliesCreateView.as_view()),
     path('comments/update/<int:pk>/', views.CommentsUpdateView.as_view()),
     path('comments/delete/<int:comment_id>/', views.CommentsDeleteView.as_view()),
 
+    path('post/<post_id>/like/add/', views.LikeCreateView.as_view()),
+    path('comment/<comment_id>/like/add/', views.LikeCreateView.as_view()),
+    path('like/delete/<like_id>/', views.LikeDeleteView.as_view()),
 
-    path('posts/update/<pk>/', views.PostUpdateView.as_view()),
+
 ]
