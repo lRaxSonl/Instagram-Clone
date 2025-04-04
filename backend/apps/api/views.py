@@ -165,8 +165,6 @@ class CommentsDeleteView(APIView):
 
 
 
-
-
 class CommentRepliesCreateView(CreateAPIView):
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
@@ -228,7 +226,7 @@ class LikeDeleteView(APIView):
         like = get_object_or_404(Like, id=like_id)
 
         if like.user != self.request.user:
-            raise PermissionDenied("You can edit only your own like")
+            raise PermissionDenied("You can delete only your own like")
 
         like.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

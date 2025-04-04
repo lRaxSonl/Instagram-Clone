@@ -26,18 +26,17 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     #     return data
 
 
-#TODO: fix likes
 #Post list
 class PostSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
-    likes = serializers.PrimaryKeyRelatedField(many=True, required=False, read_only=True)
+    likes = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
         fields = ('id', 'text', 'image', 'user', 'created_at', 'updated_at', 'likes')
 
     def get_likes(self, obj):
-        likes = Like.objects.filter()
+        likes = Like.objects.filter(post=obj)
         return LikeSerializer(likes, many=True).data
         #return obj.likes.values_list('user_id', flat=True)
 
@@ -169,13 +168,26 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class LikeSerializer(serializers.ModelSerializer):
-    user = serializers.HiddenField(default=serializers.CurrentUserDefault(), required=False)
-    comment = serializers.PrimaryKeyRelatedField(required=False, read_only=True)
-    post = serializers.PrimaryKeyRelatedField(required=False, read_only=True)
+    user = serializers.SerializerMethodField(default=serializers.CurrentUserDefault(),
+                                   required=False,
+                                   read_only=True)
+    #target = serializers.SerializerMethodField()
+    # comment = serializers.PrimaryKeyRelatedField(required=False, read_only=True)
+    # post = serializers.PrimaryKeyRelatedField(required=False, read_only=True)
 
     class Meta:
         model = Like
-        fields = '__all__'
+        fields = ('id', 'user')
+
+    # def get_target(self, obj):
+    #     if obj.post:
+    #         return {'post': obj.post.id}
+    #     elif obj.comment:
+    #         return {'comment': obj.comment.id}
+    #     return None
+
+    def get_user(self, obj):
+        return obj.user.id
 
     def create(self, validated_data):
         request = self.context.get("request")
@@ -202,3 +214,5 @@ class LikeSerializer(serializers.ModelSerializer):
 
         validated_data["user"] = user
         return super().create(validated_data)
+
+    
