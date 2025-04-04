@@ -216,7 +216,7 @@ class LikeSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-
+#TODO: Fix
 class SubscriptionSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     subscriber = serializers.PrimaryKeyRelatedField(read_only=True)
