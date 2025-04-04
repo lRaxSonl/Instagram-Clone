@@ -6,13 +6,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .serializer import PostSerializer, CustomTokenObtainPairSerializer, UserSerializer, CommentSerializer, \
-    LikeSerializer
+    LikeSerializer, SubscriptionSerializer
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.posts.models import Post, Comment, Like
-from ..users.models import User
+from ..users.models import User, Subscription
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -230,4 +230,41 @@ class LikeDeleteView(APIView):
 
         like.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class SubscribersView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = SubscriptionSerializer
+
+    def get(self, request, user_id):
+        user = get_object_or_404(User, id=user_id)
+        subscriptions = Subscription.objects.filter(user=user)
+        serializer = SubscriptionSerializer(subscriptions, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class SubscribeCreateView(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = SubscriptionSerializer
+
+    def perform_create(self, serializer):
+        user_id = self.kwargs.get('user_id')
+        user = get_object_or_404(User, id=user_id)
+
+        if user == self.request.user:
+            raise PermissionDenied("You can not subscribe to your own profile")
+
+        serializer.save(subscriber=self.request.user, user=user)
+
+
+class SubscribeDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, subscribe_id):
+        subscribe = get_object_or_404(Subscription, id=subscribe_id)
+
+        if subscribe.user != self.request.user:
+            raise PermissionDenied("You can delete only your own subscribe")
+
+        subscribe.delete()
 

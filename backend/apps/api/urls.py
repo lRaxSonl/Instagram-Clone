@@ -27,5 +27,9 @@ urlpatterns = [
     path('comment/<comment_id>/like/add/', views.LikeCreateView.as_view()),
     path('like/delete/<like_id>/', views.LikeDeleteView.as_view()),
 
+    path('user/<user_id>/subscribers/', views.SubscribersView.as_view()),
+    path('subscribe/create/<user_id>/', views.SubscribeCreateView.as_view()),
+    path('subscribe/delete/<user_id>/', views.SubscribeDeleteView.as_view()),
+
 
 ]

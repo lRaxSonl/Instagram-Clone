@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from tutorial.quickstart.serializers import UserSerializer
 from apps.posts.models import Post, Comment, Like
-from apps.users.models import User
+from apps.users.models import User, Subscription
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -215,4 +215,37 @@ class LikeSerializer(serializers.ModelSerializer):
         validated_data["user"] = user
         return super().create(validated_data)
 
-    
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    subscriber = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = Subscription
+        fields = ('id', 'user', 'subscriber')
+
+    '''User - текущий пользователь сайта, а data['user'] это пользователь
+     на которого подписываюстся'''
+    def validate(self, data):
+        request = self.context.get("request")
+        user = getattr(request, 'user', None)
+
+        if not user or not user.is_authenticated:
+            raise serializers.ValidationError("You are not authenticated")
+
+        if data["user"] == user:
+            raise serializers.ValidationError("You cannot subscribe to yourself.")
+
+        if Subscription.objects.filter(subscriber=user, user=data['user']).exists():
+            raise serializers.ValidationError("You are already subscribed.")
+
+        return data
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+
+        validated_data["subscriber"] = user
+
+        return super().create(validated_data)
