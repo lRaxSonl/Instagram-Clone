@@ -245,7 +245,6 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context.get("request")
         user = getattr(request, "user", None)
-
         validated_data["subscriber"] = user
 
         return super().create(validated_data)

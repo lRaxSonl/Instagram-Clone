@@ -23,13 +23,13 @@ urlpatterns = [
     path('comments/update/<int:pk>/', views.CommentsUpdateView.as_view()),
     path('comments/delete/<int:comment_id>/', views.CommentsDeleteView.as_view()),
 
-    path('post/<post_id>/like/add/', views.LikeCreateView.as_view()),
-    path('comment/<comment_id>/like/add/', views.LikeCreateView.as_view()),
-    path('like/delete/<like_id>/', views.LikeDeleteView.as_view()),
+    path('post/int:<post_id>/like/add/', views.LikeCreateView.as_view()),
+    path('comment/<int:comment_id>/like/add/', views.LikeCreateView.as_view()),
+    path('like/delete/<int:like_id>/', views.LikeDeleteView.as_view()),
 
-    path('user/<user_id>/subscribers/', views.SubscribersView.as_view()),
-    path('subscribe/create/<user_id>/', views.SubscribeCreateView.as_view()),
-    path('subscribe/delete/<user_id>/', views.SubscribeDeleteView.as_view()),
+    path('user/<int:user_id>/subscribers/', views.SubscribersView.as_view()),
+    path('subscribe/create/<int:user_id>/', views.SubscribeCreateView.as_view()),
+    path('subscribe/delete/<int:user_id>/', views.SubscribeDeleteView.as_view()),
 
 
 ]

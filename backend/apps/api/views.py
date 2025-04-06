@@ -247,15 +247,24 @@ class SubscribeCreateView(CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = SubscriptionSerializer
 
-    def perform_create(self, serializer):
-        user_id = self.kwargs.get('user_id')
-        user = get_object_or_404(User, id=user_id)
+    def create(self, request, *args, **kwargs):
+        user_id = self.kwargs.get("user_id")
+        subscribe_to_user = get_object_or_404(User, id=user_id)
 
-        if user == self.request.user:
+        if subscribe_to_user == request.user:
             raise PermissionDenied("You can not subscribe to your own profile")
 
-        serializer.save(subscriber=self.request.user, user=user)
+        serializer = self.get_serializer(
+            data={"user": subscribe_to_user.id},
+            context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)  #теперь вызываем с уже готовым сериализатором
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+    def perform_create(self, serializer):
+        serializer.save(subscriber=self.request.user)
 
 class SubscribeDeleteView(APIView):
     permission_classes = [IsAuthenticated]
