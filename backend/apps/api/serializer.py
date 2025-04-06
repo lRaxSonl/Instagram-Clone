@@ -1,11 +1,7 @@
 from django.contrib.auth.hashers import make_password
-from django.db.migrations import serializer
-from django.template.context_processors import request
 from django.utils.timezone import now
 from rest_framework import serializers
-from rest_framework.response import Response
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from tutorial.quickstart.serializers import UserSerializer
 from apps.posts.models import Post, Comment, Like
 from apps.users.models import User, Subscription
 
@@ -216,7 +212,6 @@ class LikeSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-#TODO: Fix
 class SubscriptionSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     subscriber = serializers.PrimaryKeyRelatedField(read_only=True)

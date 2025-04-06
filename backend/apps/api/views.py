@@ -3,7 +3,7 @@ from rest_framework import status, viewsets, serializers
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import UpdateAPIView, CreateAPIView, get_object_or_404
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .serializer import PostSerializer, CustomTokenObtainPairSerializer, UserSerializer, CommentSerializer, \
     LikeSerializer, SubscriptionSerializer
@@ -63,7 +63,7 @@ class PostDeleteView(APIView):
             raise PermissionDenied("You can edit only your own posts")
 
         post.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({"detail":"Success deleted"}, status=status.HTTP_204_NO_CONTENT)
 
 
 
@@ -161,7 +161,7 @@ class CommentsDeleteView(APIView):
             raise PermissionDenied("You can edit only your own comments")
 
         comment.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({"detail":"Success deleted"}, status=status.HTTP_204_NO_CONTENT)
 
 
 
@@ -229,21 +229,32 @@ class LikeDeleteView(APIView):
             raise PermissionDenied("You can delete only your own like")
 
         like.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({"detail":"Success deleted"}, status=status.HTTP_204_NO_CONTENT)
 
 
-class SubscribersView(APIView):
+#Подписки пользователя
+class UserSubscriptionsView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = SubscriptionSerializer
 
     def get(self, request, user_id):
         user = get_object_or_404(User, id=user_id)
-        subscriptions = Subscription.objects.filter(user=user)
+        subscriptions = Subscription.objects.filter(subscriber=user)
         serializer = SubscriptionSerializer(subscriptions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+#Подписчики пользователя
+class UserSubscribersView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = SubscriptionSerializer
 
-class SubscribeCreateView(CreateAPIView):
+    def get(self, request, user_id):
+        user = get_object_or_404(User, id=user_id)
+        subscribers = Subscription.objects.filter(user=user)
+        serializer = SubscriptionSerializer(subscribers, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class SubscriptionCreateView(CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = SubscriptionSerializer
 
@@ -266,14 +277,18 @@ class SubscribeCreateView(CreateAPIView):
     def perform_create(self, serializer):
         serializer.save(subscriber=self.request.user)
 
-class SubscribeDeleteView(APIView):
+
+class SubscriptionDeleteView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def delete(self, request, subscribe_id):
-        subscribe = get_object_or_404(Subscription, id=subscribe_id)
+    def delete(self, request, user_id):
+        subscribe = Subscription.objects.filter(user=user_id, subscriber=self.request.user).first()
 
-        if subscribe.user != self.request.user:
-            raise PermissionDenied("You can delete only your own subscribe")
+        if not subscribe:
+            raise PermissionDenied("You were not subscribed to this user")
 
         subscribe.delete()
+        return Response({"detail":"Success deleted"}, status=status.HTTP_204_NO_CONTENT)
+
+
 

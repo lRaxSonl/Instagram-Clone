@@ -1,5 +1,5 @@
 from django.urls import path
-from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
+from rest_framework_simplejwt.views import TokenRefreshView
 
 from . import views
 
@@ -27,9 +27,10 @@ urlpatterns = [
     path('comment/<int:comment_id>/like/add/', views.LikeCreateView.as_view()),
     path('like/delete/<int:like_id>/', views.LikeDeleteView.as_view()),
 
-    path('user/<int:user_id>/subscribers/', views.SubscribersView.as_view()),
-    path('subscribe/create/<int:user_id>/', views.SubscribeCreateView.as_view()),
-    path('subscribe/delete/<int:user_id>/', views.SubscribeDeleteView.as_view()),
+    path('user/<int:user_id>/subscriptions/', views. UserSubscriptionsView.as_view()), #Подписки пользователя
+    path('user/<int:user_id>/subscribers/', views. UserSubscribersView.as_view()), #Подписчики пользователя
+    path('subscription/create/<int:user_id>/', views.SubscriptionCreateView.as_view()),
+    path('subscription/delete/<int:user_id>/', views.SubscriptionDeleteView.as_view()),
 
 
 ]
