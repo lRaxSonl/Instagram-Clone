@@ -76,6 +76,10 @@ class UserRegisterView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class UserView(APIView):
+    def get(self, request, id):
+        serializer = UserSerializer(get_object_or_404(User, id=id))
+        return Response(serializer.data)
 
 
 class UserUpdateView(UpdateAPIView):

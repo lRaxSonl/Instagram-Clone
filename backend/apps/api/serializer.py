@@ -22,38 +22,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     #     return data
 
 
-#Post list
-class PostSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
-    likes = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Post
-        fields = ('id', 'text', 'image', 'user', 'created_at', 'updated_at', 'likes')
-
-    def get_likes(self, obj):
-        likes = Like.objects.filter(post=obj)
-        return LikeSerializer(likes, many=True).data
-        #return obj.likes.values_list('user_id', flat=True)
-
-    def create(self, validated_data):
-        return super().create(validated_data)
-
-    def update(self, instance, validated_data):
-        request = self.context.get('request')
-
-        if not request.user or not request.user.is_authenticated:
-            raise serializers.ValidationError("You are not authenticated")
-
-        if instance.user != request.user:
-            raise serializers.ValidationError("You can only edit your own posts")
-
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value) #обновляет поле attr новым значением value.
-
-        instance.save()
-        return instance
-
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -96,9 +64,44 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 
+#Post list
+class PostSerializer(serializers.ModelSerializer):
+    #user = serializers.PrimaryKeyRelatedField(read_only=True)
+    user = UserSerializer(read_only=True)
+    likes = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Post
+        fields = ('id', 'text', 'image', 'user', 'created_at', 'updated_at', 'likes')
+
+    def get_likes(self, obj):
+        likes = Like.objects.filter(post=obj)
+        return LikeSerializer(likes, many=True).data
+        #return obj.likes.values_list('user_id', flat=True)
+
+    def create(self, validated_data):
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        request = self.context.get('request')
+
+        if not request.user or not request.user.is_authenticated:
+            raise serializers.ValidationError("You are not authenticated")
+
+        if instance.user != request.user:
+            raise serializers.ValidationError("You can only edit your own posts")
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value) #обновляет поле attr новым значением value.
+
+        instance.save()
+        return instance
+
+
+
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     replies = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
 
