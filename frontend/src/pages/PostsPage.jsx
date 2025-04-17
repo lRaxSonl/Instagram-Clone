@@ -1,5 +1,5 @@
-import axios from "axios"
 import React from "react"
+import { getPosts } from "../api/posts"
 
 
 class Posts extends React.Component {
@@ -32,7 +32,7 @@ class Posts extends React.Component {
   }
 
   componentDidMount() {
-    axios.get('http://127.0.0.1:8000/api/posts/')
+    getPosts()
     .then((res) => {
         this.setState({posts: res.data})
     })
