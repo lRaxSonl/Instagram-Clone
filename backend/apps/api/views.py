@@ -2,7 +2,7 @@ from django.views.generic import CreateView
 from rest_framework import status, viewsets, serializers
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import UpdateAPIView, CreateAPIView, get_object_or_404
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .serializer import PostSerializer, CustomTokenObtainPairSerializer, UserSerializer, CommentSerializer, \
@@ -68,6 +68,8 @@ class PostDeleteView(APIView):
 
 
 class UserRegisterView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():

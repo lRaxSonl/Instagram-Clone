@@ -1,6 +1,6 @@
-import axios from "axios";
+import axiosInstance from "./axiosInstance";
 
 
-export const likePost = (postId) => axios.post(`/api/post/int:${postId}/like/add/`);
-export const likeComment = (commentId) => axios.post(`/api/comment/${commentId}/like/add/`);
-export const deleteLike = (likeId) => axios.delete(`/api/like/delete/${likeId}/`);
+export const likePost = (postId) => axiosInstance.post(`post/${postId}/like/add/`);
+export const likeComment = (commentId) => axiosInstance.post(`comment/${commentId}/like/add/`);
+export const deleteLike = (likeId) => axiosInstance.delete(`like/delete/${likeId}/`);

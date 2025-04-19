@@ -1,8 +1,8 @@
 import React from "react"
 import { getPosts } from "../api/posts"
+import Header from "../componens/Header"
 
-
-class Posts extends React.Component {
+class PostsPage extends React.Component {
     constructor(props) {
         super(props)
 
@@ -12,6 +12,7 @@ class Posts extends React.Component {
     }
 
   render() {
+    <Header />
     if (this.state.posts.length > 0) {
         return (
             <div>
@@ -42,4 +43,4 @@ class Posts extends React.Component {
   }
 }
 
-export default Posts
+export default PostsPage

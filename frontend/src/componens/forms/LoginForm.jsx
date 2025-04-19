@@ -1,24 +1,41 @@
 import React, { useState } from 'react';
 import '../../css/AuthPage.css';
+import { getToken } from '../../api/auth';
+import axios from 'axios';
+import { useNavigate } from "react-router-dom";
 
 const LoginForm = ({ switchForm }) => {
 
-    //Состояние для хранения значений полей
+    const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    //Обработчик отправки формы
-    const handleSubmit = (e) => {
+
+    //Form handler
+    const handleSubmit = async (e) => {
     e.preventDefault();
 
-    //Проверка на пустые поля (можно улучшить в будущем)
     if (!email || !password) {
       setError('Пожалуйста, заполните все поля.');
       return;
     }
 
+    try {
+        const response = await getToken({ email, password })
 
-    console.log('Авторизация с:', { email, password });
+        //save tokens
+        localStorage.setItem('access', response.data.access)
+        localStorage.setItem('refresh', response.data.refresh)
+
+        axios.defaults.headers.Authorization = `Bearer ${response.data.access}`;
+
+        //Redirect to posts
+        navigate('/posts')
+    }catch (err) {
+        //console.error(err);
+        setError('Invalid email or password');
+    }
+
   };
 
   return (
@@ -41,10 +58,10 @@ const LoginForm = ({ switchForm }) => {
         className="auth-input"
         required
     />
-    <button type="submit" className="auth-btn">Sing in</button>
+    <button type="submit" className="auth-btn">Sign in</button>
     </form>
     <div className="auth-footer">
-        <span>Does not have a account | <button onClick={switchForm} className='switch-btn'>Sing up</button></span>
+        <span>Don't not have a account | <button onClick={switchForm} className='switch-btn'>Sing up</button></span>
     </div>
     </>
 )}
