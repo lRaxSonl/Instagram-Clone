@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
 import '../../css/AuthPage.css';
 import { registerUser } from '../../api/users';
+import { getToken } from '../../api/auth';
+import axios from 'axios';
+import { useNavigate } from "react-router-dom";
 
 const RegisterForm = ({ switchForm }) => {
 
-    const [username , setUseraname] = useState('');
+    const navigate = useNavigate();
+    const [username , setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+
     //Form handler
     const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,8 +23,22 @@ const RegisterForm = ({ switchForm }) => {
     }
 
     try {
-        const response = await registerUser({ email, username, password })
-        console.log(response)
+        const regResponse = await registerUser({ email, username, password })
+        
+        if (regResponse.status === 201) {
+            const response = await getToken({ email, password })
+
+            if (response.status === 200) {
+                //save tokens
+                localStorage.setItem('access', response.data.access)
+                localStorage.setItem('refresh', response.data.refresh)
+
+                axios.defaults.headers.Authorization = `Bearer ${response.data.access}`;
+
+                //Redirect to posts
+                navigate('/feed')
+            }
+        }
     }catch (err) {
         console.error(err)
         setError("Something error")
@@ -44,7 +63,7 @@ const RegisterForm = ({ switchForm }) => {
         type="text"
         placeholder="Username"
         value={username}
-        onChange={(e) => setUseraname(e.target.value)}
+        onChange={(e) => setUsername(e.target.value)}
         className="auth-input"
         required
     />
@@ -56,10 +75,10 @@ const RegisterForm = ({ switchForm }) => {
         className="auth-input"
         required
     />
-    <button type="submit" className="auth-btn">Sing up</button>
+    <button type="submit" className="auth-btn">Sign up</button>
     </form>
     <div className="auth-footer">
-        <span>Already have a account | <button onClick={switchForm} className='switch-btn'>Sing in</button></span>
+        <span>Already have a account | <button onClick={switchForm} className='switch-btn'>Sign in</button></span>
     </div>
     </>
 )}

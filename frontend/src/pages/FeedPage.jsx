@@ -2,7 +2,7 @@ import React from "react"
 import { getPosts } from "../api/posts"
 import Header from "../componens/Header"
 
-class PostsPage extends React.Component {
+class FeedPage extends React.Component {
     constructor(props) {
         super(props)
 
@@ -43,4 +43,4 @@ class PostsPage extends React.Component {
   }
 }
 
-export default PostsPage
+export default FeedPage;

@@ -30,7 +30,7 @@ const LoginForm = ({ switchForm }) => {
         axios.defaults.headers.Authorization = `Bearer ${response.data.access}`;
 
         //Redirect to posts
-        navigate('/posts')
+        navigate('/feed')
     }catch (err) {
         //console.error(err);
         setError('Invalid email or password');
