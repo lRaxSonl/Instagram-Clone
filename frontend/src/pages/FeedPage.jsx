@@ -1,10 +1,11 @@
-import React from "react"
-import { getPosts } from "../api/posts"
-import Header from "../componens/Header"
+import React from "react";
+import { getPosts } from "../api/posts";
+import Header from "../componens/Header";
+import { PostCard } from "../componens/PostCard";
 
 class FeedPage extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
 
         this.state = {
             posts: []
@@ -12,25 +13,26 @@ class FeedPage extends React.Component {
     }
 
   render() {
-    <Header />
-    if (this.state.posts.length > 0) {
-        return (
-            <div>
-                {this.state.posts.map((el) => (
-                    <div className="user">
-                        <h3>{el.text} - {el.id}, by {el.user.username}</h3>
-                    </div>
-                ))}
-            </div>
-        )
-    }else {
-        return (
+    const posts = this.state.posts;
+
+    return (
+        <>
+        <Header />
+        <div className="feed-container">
+        {posts.length > 0 ? (
+            posts.map((post) => (
+            <PostCard key={post.id} post={post} />
+            ))
+        ) : (
             <div className="post">
-                <h3>Posts not found</h3>
+            <h3>Posts not found</h3>
             </div>
-        )
-    }
+        )}
+        </div>
+        </>
+    )
   }
+  
 
   componentDidMount() {
     getPosts()
@@ -39,7 +41,7 @@ class FeedPage extends React.Component {
     })
     .catch((err) => {
         console.log("Someting error: " + err)
-    })
+    });
   }
 }
 
