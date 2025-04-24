@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import LoginForm from '../componens/forms/LoginForm';
 import RegisterForm from '../componens/forms/RegisterForm';
-import '../css/authPage.css';
+import '../css/AuthPage.css';
 import logo from '../img/logo/InstaClone_logo-removebg.png'
 
 

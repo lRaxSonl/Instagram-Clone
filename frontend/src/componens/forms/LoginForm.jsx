@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import '../../css/authPage.css';
+import '../../css/AuthPage.css';
 import { getToken } from '../../api/auth';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
@@ -16,7 +16,7 @@ const LoginForm = ({ switchForm }) => {
     e.preventDefault();
 
     if (!email || !password) {
-      setError('Пожалуйста, заполните все поля.');
+      setError('Please fill in all fields.');
       return;
     }
 

@@ -84,6 +84,16 @@ class UserView(APIView):
         return Response(serializer.data)
 
 
+class UserViewMe(APIView):
+    def get(self, request):
+        if request.user.is_authenticated:
+            serializer = UserSerializer(request.user)
+            return Response(serializer.data)
+
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+
+
 class UserUpdateView(UpdateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UserSerializer

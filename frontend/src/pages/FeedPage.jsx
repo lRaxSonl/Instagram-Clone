@@ -3,13 +3,15 @@ import { getPosts } from "../api/posts";
 import Header from "../componens/Header";
 import { PostCard } from "../componens/PostCard";
 import AddPostForm from "../componens/forms/AddPostForm";
+import { getCurrentUser } from "../api/users";
 
 class FeedPage extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            posts: []
+            posts: [],
+            currentUser: null
         }
 
         this.handlePostCreated = this.handlePostCreated.bind(this);
@@ -18,6 +20,7 @@ class FeedPage extends React.Component {
 
   render() {
     const posts = this.state.posts;
+    const currentUser = this.state.currentUser;
 
     return (
         <>
@@ -25,7 +28,7 @@ class FeedPage extends React.Component {
         <div className="feed-container">
         {posts.length > 0 ? (
             posts.map((post) => (
-            <PostCard key={post.id} post={post} />
+            <PostCard key={post.id} post={post} currentUser={currentUser} />
             ))
         ) : (
             <div className="post">
@@ -51,9 +54,18 @@ class FeedPage extends React.Component {
         this.setState({posts: res.data})
     })
     .catch((err) => {
-        console.log("Someting error: " + err)
+        console.error("Someting error: " + err)
     });
+
+    getCurrentUser().then((res) => {
+      this.setState({ currentUser: res.data });
+    })
+    .catch((err) => {
+      console.error("Error when fetching the user." + err)
+    })
   }
+
+  
 }
 
 export default FeedPage;

@@ -1,10 +1,46 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "../css/postCard.css";
 import { BACKEND_SERVER } from "../config";
-import like_icon from "../img/icons/Like.svg";
+import { ReactComponent as LikeIcon } from "../img/icons/Like_icon.svg";
+import { ReactComponent as CommentIcon } from "../img/icons/Comment_icon.svg";
+import { likePost, deleteLike } from "../api/likes";
 
 
-export const PostCard = ({ post }) => {
+export const PostCard = ({ post, currentUser }) => {
+  const [liked, setLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(post.likes.length);
+  const [likeId, setLikeId] = useState(null);
+
+  useEffect(() => {
+    if (currentUser) {
+      const userLike = post.likes.find(like => like.user === currentUser.id);
+      setLiked(!!userLike);
+      setLikeId(userLike?.id || null);
+    }
+  }, [currentUser, post.likes]);
+
+  const handleLike = async () => {
+    try {
+      if (liked) {
+        //TODO: FIX Broken pipe error
+
+        //Delete like
+        await deleteLike(likeId);
+        setLiked(false);
+        setLikesCount(prev => prev - 1);
+        setLikeId(null)
+      } else {
+        //Add like
+        await likePost(post.id).then(res => setLikeId(res.data.id));
+        setLiked(true);
+        setLikesCount(prev => prev + 1);
+      }
+    } catch (error) {
+      console.error("Error when added like", error);
+    }
+  };
+
+
     return (
         <div className="post-card">
         {/* Title with username and avatar */}
@@ -23,8 +59,12 @@ export const PostCard = ({ post }) => {
         {/* Likes and text */}
         <div className="post-body">
           <div className="post-actions">
-            <img src={like_icon} alt="Like icon" /> {post.likes.length} лайков
+          <button className={`like-button ${liked ? 'liked' : ''}`} onClick={handleLike}>
+            <LikeIcon className="like-icon" />
+          </button>
+            <CommentIcon className="comment-icon" />
           </div>
+          {likesCount} лайков
           <div className="post-text">
             <strong>{post.user.username}</strong> {post.text}
           </div>
