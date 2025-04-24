@@ -2,6 +2,7 @@ import React from "react";
 import { getPosts } from "../api/posts";
 import Header from "../componens/Header";
 import { PostCard } from "../componens/PostCard";
+import AddPostForm from "../componens/forms/AddPostForm";
 
 class FeedPage extends React.Component {
     constructor(props) {
@@ -10,7 +11,10 @@ class FeedPage extends React.Component {
         this.state = {
             posts: []
         }
+
+        this.handlePostCreated = this.handlePostCreated.bind(this);
     }
+    
 
   render() {
     const posts = this.state.posts;
@@ -29,8 +33,15 @@ class FeedPage extends React.Component {
             </div>
         )}
         </div>
+        <AddPostForm onPostCreated={this.handlePostCreated} />
         </>
     )
+  }
+
+  handlePostCreated(newPost) {
+    this.setState((prevState) => ({
+      posts: [newPost, ...prevState.posts],
+    }));
   }
   
 

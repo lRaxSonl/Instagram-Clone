@@ -1,10 +1,21 @@
+import os
+from datetime import datetime
+import random
+import string
 from config import settings
 from django.db import models
 from apps.users.models import User
 from apps.common.models import AbstractModel
 
+def make_path_to_file(instance, filename):
+    year = datetime.now().year
+
+    unique_filename = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6)) + f'_{filename}'
+
+    return os.path.join(settings.MEDIA_ROOT, str(year), unique_filename)
+
 class Post(AbstractModel):
-    image = models.ImageField(upload_to='posts/', null=True, blank=True)
+    image = models.ImageField(upload_to=make_path_to_file, null=True, blank=True)
     text = models.TextField(null=False)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=False, related_name='posts')
 

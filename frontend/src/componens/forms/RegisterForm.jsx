@@ -18,7 +18,7 @@ const RegisterForm = ({ switchForm }) => {
     e.preventDefault();
 
     if (!username || !email || !password) {
-      setError('Пожалуйста, заполните все поля.');
+      setError('Please fill in all fields.');
       return;
     }
 

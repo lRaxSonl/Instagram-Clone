@@ -6,6 +6,7 @@
     margin: 20px auto;
     background: #121212;
     font-family: 'Segoe UI', sans-serif;
+    color: #FFFFFF;
   }
   
   .post-header {
@@ -55,7 +56,7 @@
   .show-all-comments {
     margin-top: 4px;
     font-size: 13px;
-    color: gray;
+    color: #FFFFFF;
     background: none;
     border: none;
     cursor: pointer;

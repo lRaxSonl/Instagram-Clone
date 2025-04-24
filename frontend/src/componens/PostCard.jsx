@@ -1,5 +1,7 @@
 import React from "react";
-import "../css/postCard.css"
+import "../css/postCard.css";
+import { BACKEND_SERVER } from "../config";
+import like_icon from "../img/icons/Like.svg";
 
 
 export const PostCard = ({ post }) => {
@@ -14,14 +16,14 @@ export const PostCard = ({ post }) => {
         {/* Post img */}
         {post.image && (
           <div className="post-image">
-            <img src={post.image} alt="post" />
+            <img src={`${BACKEND_SERVER}${post.image}`} alt="post" />
           </div>
         )}
   
         {/* Likes and text */}
         <div className="post-body">
           <div className="post-actions">
-            ❤️ {post.likes_count} лайков
+            <img src={like_icon} alt="Like icon" /> {post.likes.length} лайков
           </div>
           <div className="post-text">
             <strong>{post.user.username}</strong> {post.text}

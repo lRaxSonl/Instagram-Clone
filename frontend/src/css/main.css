@@ -6,8 +6,8 @@
 }
 
 body {
-    background-color: #121212;
-    color: #fff;
+    background-color: #121212 !important;
+    color: #fff !important;
     font-family: "Montserrat", sans-serif;
     font-weight: 300;
 }
