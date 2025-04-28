@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import '../../css/AuthPage.css';
+import '../../css/authPage.css';
 import { registerUser } from '../../api/users';
 import { getToken } from '../../api/auth';
 import axios from 'axios';

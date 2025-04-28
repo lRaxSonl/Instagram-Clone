@@ -64,6 +64,12 @@
 
 .like-icon {
   margin-right: 10px;
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke-width: 2px;
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .like-button {
@@ -72,6 +78,24 @@
   cursor: pointer;
 }
 
-.like-button.liked .like-icon {
-  fill: red; /* или другой цвет */
+
+/* Когда лайкнут */
+.like-icon.liked {
+  fill: red;
+  stroke: red;
+  transform: scale(1.2);
+  animation: pop 0.3s ease;
+}
+
+/* Анимация "поп" */
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.4);
+  }
+  100% {
+    transform: scale(1.2);
+  }
 }

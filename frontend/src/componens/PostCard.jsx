@@ -10,6 +10,7 @@ export const PostCard = ({ post, currentUser }) => {
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(post.likes.length);
   const [likeId, setLikeId] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (currentUser) {
@@ -20,6 +21,9 @@ export const PostCard = ({ post, currentUser }) => {
   }, [currentUser, post.likes]);
 
   const handleLike = async () => {
+    if (loading) return;
+    setLoading(true);
+
     try {
       if (liked) {
         //TODO: FIX Broken pipe error
@@ -37,6 +41,20 @@ export const PostCard = ({ post, currentUser }) => {
       }
     } catch (error) {
       console.error("Error when added like", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDoubleClick = async () => {
+    if (!liked) {
+      try {
+        await likePost(post.id).then(res => setLikeId(res.data.id));
+        setLiked(true);
+        setLikesCount(prev => prev + 1);
+      } catch (error) {
+        console.error("Error when double-click liking", error);
+      }
     }
   };
 
@@ -51,7 +69,7 @@ export const PostCard = ({ post, currentUser }) => {
   
         {/* Post img */}
         {post.image && (
-          <div className="post-image">
+          <div className="post-image" onDoubleClick={handleDoubleClick}>
             <img src={`${BACKEND_SERVER}${post.image}`} alt="post" />
           </div>
         )}
@@ -60,7 +78,7 @@ export const PostCard = ({ post, currentUser }) => {
         <div className="post-body">
           <div className="post-actions">
           <button className={`like-button ${liked ? 'liked' : ''}`} onClick={handleLike}>
-            <LikeIcon className="like-icon" />
+            <LikeIcon className={`like-icon ${liked ? "liked" : ""}`} />
           </button>
             <CommentIcon className="comment-icon" />
           </div>
