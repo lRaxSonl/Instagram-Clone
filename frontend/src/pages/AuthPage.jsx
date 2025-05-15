@@ -14,18 +14,18 @@ const AuthPage = () => {
 
   return (
     <div className="auth-container">
-    <div className="auth-image">
-      <img src={logo} alt="Instagram Clone" />
+      <div className="auth-image">
+        <img src={logo} alt="Instagram Clone" />
+      </div>
+      <div className="auth-box">
+        <h1 className="auth-title">InstaClone</h1>
+        {isLogin ? (
+          <LoginForm switchForm={switchForm} />
+        ) : (
+          <RegisterForm switchForm={switchForm} />
+        )}
+      </div>
     </div>
-    <div className="auth-box">
-      <h1 className="auth-title">InstaClone</h1>
-      {isLogin ? (
-        <LoginForm switchForm={switchForm} />
-      ) : (
-        <RegisterForm switchForm={switchForm} />
-      )}
-    </div>
-  </div>
   );
 };
 

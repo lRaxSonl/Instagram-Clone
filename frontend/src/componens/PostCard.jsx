@@ -4,6 +4,8 @@ import { BACKEND_SERVER } from "../config";
 import { ReactComponent as LikeIcon } from "../img/icons/Like_icon.svg";
 import { ReactComponent as CommentIcon } from "../img/icons/Comment_icon.svg";
 import { likePost, deleteLike } from "../api/likes";
+import { CommentCard } from "./CommentCard";
+import { createPostComment } from "../api/posts";
 
 
 export const PostCard = ({ post, currentUser }) => {
@@ -11,6 +13,10 @@ export const PostCard = ({ post, currentUser }) => {
   const [likesCount, setLikesCount] = useState(post.likes.length);
   const [likeId, setLikeId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [newComment, setNewComment] = useState("");
+  const [comments, setComments] = useState(post.comments || []);
+
 
   useEffect(() => {
     if (currentUser) {
@@ -53,10 +59,28 @@ export const PostCard = ({ post, currentUser }) => {
         setLiked(true);
         setLikesCount(prev => prev + 1);
       } catch (error) {
-        console.error("Error when double-click liking", error);
+        console.error("Error when double-click сliking", error);
       }
     }
   };
+
+
+  const toggleComments = () => {
+    setIsCommentsOpen(prev => !prev); //Переключение видимости комментариев
+  };
+
+  const handleSendComment = async () => {
+    if (!newComment.trim()) return;
+  
+    try {
+      const response = await createPostComment(post.id, { text: newComment });
+      const createdComment = response.data;
+      setComments(prev => [...prev, createdComment]);
+      setNewComment("");
+    } catch(err) {
+      console.error("Ошибка при отправке комментария:", err);
+      };
+    }
 
 
     return (
@@ -80,7 +104,7 @@ export const PostCard = ({ post, currentUser }) => {
           <button className={`like-button ${liked ? 'liked' : ''}`} onClick={handleLike}>
             <LikeIcon className={`like-icon ${liked ? "liked" : ""}`} />
           </button>
-            <CommentIcon className="comment-icon" />
+            <CommentIcon className="comment-icon" onClick={toggleComments} />
           </div>
           {likesCount} лайков
           <div className="post-text">
@@ -88,17 +112,38 @@ export const PostCard = ({ post, currentUser }) => {
           </div>
         </div>
   
-        {/* Comments */}
-        <div className="post-comments">
-          {post.comments?.slice(0, 2).map((c) => (
-            <div key={c.id} className="comment">
-              <strong>{c.user.username}</strong> {c.text}
+         {/* Comments */}
+         {isCommentsOpen && (
+          <div className="comments-modal">
+            <div className="comments-list">
+              {post.comments?.map((comment) => (
+                <CommentCard key={comment.id} comment={comment} />
+              ))}
             </div>
-          ))}
-          {post.comments?.length > 2 && (
-            <button className="show-all-comments">Показать все комментарии</button>
-          )}
-        </div>
+
+            <div className="comment-input-container">
+              <input
+                type="text"
+                placeholder="Добавьте комментарий..."
+                className="comment-input"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+              />
+              <button
+                className="send-comment-button"
+                onClick={handleSendComment}
+                disabled={!newComment.trim()}
+              >
+                Отправить
+              </button>
+            </div>
+
+            <button className="close-comments" onClick={toggleComments}>
+              Закрыть комментарии
+            </button>
+          </div>
+        )}
+
       </div>
     );
 }
