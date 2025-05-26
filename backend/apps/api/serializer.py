@@ -101,7 +101,7 @@ class PostSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    user = UserSerializer(read_only=True)
     replies = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
 
