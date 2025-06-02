@@ -2,23 +2,27 @@ import React, { useState, useEffect } from "react";
 import "../css/commentCard.css";
 import { ReactComponent as LikeIcon } from "../img/icons/Like_icon.svg";
 import { createPostComment, getPostComments } from "../api/posts";
+import { likeComment, deleteLike } from "../api/likes";
 
 
-export const CommentCard = ({ post }) => {
+export const CommentCard = ({ post, currentUser }) => {
   const [newComment, setNewComment] = useState("");
   const [localComments, setLocalComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Загружаем комментарии при монтировании компонента
+  //Состояние для лайков комментариев
+  const [commentLikes, setCommentLikes] = useState({});
+
+  //Загружаем комментарии при монтировании компонента
   useEffect(() => {
     const fetchComments = async () => {
       try {
         const response = await getPostComments(post.id);
         setLocalComments(response.data || []);
       } catch (err) {
-        setError("Ошибка загрузки комментариев");
-        console.error("Ошибка при загрузке комментариев:", err);
+        setError("Error uploading comments");
+        console.error("Error when uploading comments:", err);
       } finally {
         setLoading(false);
       }
@@ -29,60 +33,170 @@ export const CommentCard = ({ post }) => {
     }
   }, [post.id]);
 
-  //TODO: Сделать обработку лайка для комментария
-  const handleLike = (index) => {
-    const updatedComments = [...localComments];
-    updatedComments[index].liked = !updatedComments[index].liked;
-    setLocalComments(updatedComments);
+  //Инициализируем состояния для каждого комментария
+  useEffect(() => {
+    const initialLikes = {};
+    localComments.forEach((comment) => {
+      const userLike = comment.likes.find(
+        (like) => like.user === currentUser?.id
+      );
+      initialLikes[comment.id] = {
+        liked: !!userLike,
+        likesCount: comment.likes.length,
+        likeId: userLike?.id || null,
+      };
+    });
+    setCommentLikes(initialLikes);
+  }, [localComments, currentUser]);
+
+  //Логика лайка/дизлайка для комментария
+  const handleLike = async (comment) => {
+    const commentId = comment.id;
+    const currentUserId = currentUser?.id;
+
+    if (!currentUserId) {
+      alert("Log in to your account to like");
+      return;
+    }
+
+    const currentState = commentLikes[commentId] || {
+      liked: false,
+      likesCount: comment.likes.length,
+      likeId: null,
+    };
+
+    const isLiked = currentState.liked;
+
+    // Предварительно обновляем состояние UI
+    setCommentLikes({
+      ...commentLikes,
+      [commentId]: {
+        ...currentState,
+        liked: !isLiked,
+        likesCount: isLiked
+          ? currentState.likesCount - 1
+          : currentState.likesCount + 1,
+        likeId: isLiked ? null : currentState.likeId,
+      },
+    });
+
+    try {
+      if (isLiked && currentState.likeId) {
+        //Удаляем лайк
+        await deleteLike(currentState.likeId);
+
+        //Обновляем состояние после удаления
+        setCommentLikes((prev) => ({
+          ...prev,
+          [commentId]: {
+            ...prev[commentId],
+            liked: false,
+            likesCount: prev[commentId].likesCount - 1,
+            likeId: null,
+          },
+        }));
+      } else {
+        //Ставим новый лайк
+        const res = await likeComment(commentId);
+        const newLikeId = res.data.id;
+
+        //Обновляем состояние после добавления
+        setCommentLikes((prev) => ({
+          ...prev,
+          [commentId]: {
+            ...prev[commentId],
+            liked: true,
+            likesCount: prev[commentId].likesCount + 1,
+            likeId: newLikeId,
+          },
+        }));
+      }
+    } catch (error) {
+      console.error("Error when changing the like", error);
+      alert("Couldn't update like");
+
+      //Откатываем изменения
+      setCommentLikes({
+        ...commentLikes,
+        [commentId]: currentState,
+      });
+    }
   };
 
   const handleSendComment = async () => {
     if (!newComment.trim()) return;
 
     try {
-      console.log(newComment)
-      console.log(post.id)
-      const response = await createPostComment(post.id, { text: newComment });
+      const response = await createPostComment(post.id, {
+        text: newComment,
+      });
       const createdComment = response.data;
       setLocalComments((prev) => [createdComment, ...prev]);
       setNewComment("");
     } catch (err) {
-      console.error("Ошибка при отправке комментария:", err);
+      console.error("Error when sending a comment:", err);
     }
   };
+
+  const formatDateShort = (timestamp) => {
+    const date = new Date(Date.parse(timestamp));
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = String(date.getFullYear()).slice(-2);
+    return `${day}.${month}.${year}`;
+  };
+
+  if (loading) return <p>Uploading comments...</p>;
+  if (error) return <p className="error">{error}</p>;
 
   return (
     <div className="comment-section">
       {/* Список комментариев */}
       <div className="comments-list">
         {localComments.length > 0 ? (
-          localComments.map((comment, index) => (
-            <div key={comment.id} className="instagram-comment">
-              <img
-                src={comment.user.avatar || "/default-avatar.png"}
-                alt="avatar"
-                className="comment-avatar"
-              />
-              <div className="comment-content">
-                <div className="comment-header">
-                  <strong className="comment-username">{comment.user.username}</strong>
-                  <span className="comment-text">{comment.text}</span>
-                </div>
-                <div className="comment-footer">
-                  <button
-                    className={`like-button ${comment.liked ? "liked" : ""}`}
-                    onClick={() => handleLike(index)}
-                  >
-                    <LikeIcon className={`like-icon ${comment.liked ? "liked" : ""}`} />
-                  </button>
-                  {comment.liked && <span className="like-count">Нравится</span>}
-                  <span className="comment-time">1ч</span>
+          localComments.map((comment) => {
+            const currentLikeState = commentLikes[comment.id] || {
+              liked: false,
+              likesCount: comment.likes.length,
+            };
+
+            const isLiked = currentLikeState.liked;
+            const likesCount = currentLikeState.likesCount;
+
+            return (
+              <div key={comment.id} className="instagram-comment">
+                <img
+                  src={comment.user.avatar || "/default-avatar.png"}
+                  alt="avatar"
+                  className="comment-avatar"
+                />
+                <div className="comment-content">
+                  <div className="comment-header">
+                    <strong className="comment-username">
+                      {comment.user.username}
+                    </strong>
+                    <span className="comment-text">{comment.text}</span>
+                  </div>
+                  <div className="comment-footer">
+                    <button
+                      className={`like-button ${isLiked ? "liked" : ""}`}
+                      onClick={() => handleLike(comment)}
+                    >
+                      <LikeIcon
+                        className={`like-icon ${isLiked ? "liked" : ""}`}
+                      />
+                    </button>
+                    {isLiked && <span className="like-count">Likes: {likesCount}</span>}
+                    <span className="comment-time">
+                      {formatDateShort(comment.created_at)}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         ) : (
-          <p className="no-comments">Комментариев пока нет</p>
+          <p className="no-comments">There are no comments yet</p>
         )}
       </div>
 
@@ -90,7 +204,7 @@ export const CommentCard = ({ post }) => {
       <div className="comment-input-wrapper">
         <input
           type="text"
-          placeholder="Напишите комментарий..."
+          placeholder="Write a comment..."
           className="comment-input"
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
@@ -100,7 +214,7 @@ export const CommentCard = ({ post }) => {
           onClick={handleSendComment}
           disabled={!newComment.trim()}
         >
-          Опубликовать
+          To publish
         </button>
       </div>
     </div>

@@ -40,7 +40,7 @@ export const PostCard = ({ post, currentUser }) => {
         setLikesCount(prev => prev + 1);
       }
     } catch (error) {
-      console.error("Ошибка при изменении лайка", error);
+      console.error("Error when changing the like", error);
     } finally {
       setLoading(false);
     }
@@ -55,7 +55,7 @@ export const PostCard = ({ post, currentUser }) => {
         setLiked(true);
         setLikesCount(prev => prev + 1);
       } catch (error) {
-        console.error("Ошибка при двойном клике", error);
+        console.error("Double-click error", error);
       }
     }
   };
@@ -88,7 +88,7 @@ export const PostCard = ({ post, currentUser }) => {
           </button>
           <CommentIcon className="comment-icon" onClick={toggleComments} />
         </div>
-        <div className="likes-count">{likesCount} нравится</div>
+        <div className="likes-count">{likesCount} likes</div>
         <div className="post-text">
           <strong>{post.user.username}</strong> {post.text}
         </div>
@@ -96,7 +96,7 @@ export const PostCard = ({ post, currentUser }) => {
 
       {/* Блок комментариев */}
       {isCommentsOpen && (
-        <CommentCard post={post} />
+        <CommentCard post={post} currentUser={currentUser} />
       )}
     </div>
   );
