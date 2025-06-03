@@ -1,12 +1,31 @@
-import React from "react"
+import React from "react";
+import "../css/header.css";
+import { slugify } from "../utils/slugify";
 
+// Пример аватара по умолчанию
+import defaultAvatar from "../img/avatars/default-avatar.png";
 
-const Header = ({ title }) => {
+export const Header = ({ currentUser }) => {
+  if (!currentUser) return null;
+
+  const userSlug = slugify(`${currentUser.username}`);
+
   return (
-    <header className="header">
-      {title}
+    <header className="instagram-header">
+      {/* Левая часть — лого или название */}
+      <div className="header-left">
+        <span className="logo">InstaClone</span>
+      </div>
+
+      {/* Правая часть — аватар и никнейм */}
+      <a href={`/profile/${userSlug}-${currentUser.id}`} className="header-right">
+        <img
+          src={currentUser.avatar || defaultAvatar}
+          alt="avatar"
+          className="user-avatar"
+        />
+        <span className="username">{currentUser.username}</span>
+      </a>
     </header>
   );
 };
-
-export default Header

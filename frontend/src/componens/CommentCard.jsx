@@ -3,6 +3,7 @@ import "../css/commentCard.css";
 import { ReactComponent as LikeIcon } from "../img/icons/Like_icon.svg";
 import { createPostComment, getPostComments } from "../api/posts";
 import { likeComment, deleteLike } from "../api/likes";
+import defaultAvatar from "../img/avatars/default-avatar.png";
 
 
 export const CommentCard = ({ post, currentUser }) => {
@@ -106,7 +107,7 @@ export const CommentCard = ({ post, currentUser }) => {
           [commentId]: {
             ...prev[commentId],
             liked: true,
-            likesCount: prev[commentId].likesCount + 1,
+            likesCount: prev[commentId].likesCount,
             likeId: newLikeId,
           },
         }));
@@ -166,7 +167,7 @@ export const CommentCard = ({ post, currentUser }) => {
             return (
               <div key={comment.id} className="instagram-comment">
                 <img
-                  src={comment.user.avatar || "/default-avatar.png"}
+                  src={comment.user.avatar || defaultAvatar}
                   alt="avatar"
                   className="comment-avatar"
                 />
@@ -186,7 +187,7 @@ export const CommentCard = ({ post, currentUser }) => {
                         className={`like-icon ${isLiked ? "liked" : ""}`}
                       />
                     </button>
-                    {isLiked && <span className="like-count">Likes: {likesCount}</span>}
+                    {0<likesCount && <span className="like-count">Likes: {likesCount}</span>}
                     <span className="comment-time">
                       {formatDateShort(comment.created_at)}
                     </span>

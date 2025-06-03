@@ -28,6 +28,12 @@ class PostListView(APIView):
         return Response(serializer.data)
 
 
+class PostByUserView(APIView):
+    def get(self, request, id):
+        posts = Post.objects.filter(user_id=id).all()
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data)
+
 class PostCreateView(APIView):
     permission_classes = [IsAuthenticated]
 

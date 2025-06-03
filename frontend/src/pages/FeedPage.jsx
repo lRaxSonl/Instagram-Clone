@@ -1,6 +1,6 @@
 import React from "react";
 import { getPosts } from "../api/posts";
-import Header from "../componens/Header";
+import { Header } from "../componens/Header";
 import { PostCard } from "../componens/PostCard";
 import AddPostForm from "../componens/forms/AddPostForm";
 import { getCurrentUser } from "../api/users";
@@ -24,7 +24,7 @@ class FeedPage extends React.Component {
 
     return (
         <>
-        <Header />
+        <Header currentUser={currentUser} />
         <div className="feed-container">
         {posts.length > 0 ? (
             posts.map((post) => (

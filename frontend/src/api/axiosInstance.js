@@ -7,7 +7,7 @@ import { Navigate } from 'react-router-dom';
 let accessToken = localStorage.getItem("access");
 
 const axiosInstance = axios.create({
-    baseURL: `${BACKEND_SERVER}/api/`,
+    baseURL: `${BACKEND_SERVER}/api/v1/`,
     headers: {
         Authorization: accessToken ? `Bearer ${accessToken}` : "",
     },
