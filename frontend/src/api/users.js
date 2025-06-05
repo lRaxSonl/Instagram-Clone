@@ -8,5 +8,7 @@ export const getUser = (id) => axiosInstance.get(`user/${id}/`);
 export const getCurrentUser = () => axiosInstance.get(`user/me/`)
 export const getUserSubcrtiptions = (id) => axiosInstance.get(`user/${id}/subscriptions/`);
 export const getUserSubscribers = (id) => axiosInstance.get(`user/${id}/subscribers/`);
+export const createSubcription = (id) => axiosInstance.post(`subscription/create/${id}/`);
+export const deleteSubcription = (id) => axiosInstance.delete(`subscription/delete/${id}/`);
 export const updateUser = (data) => axiosInstance.put(`user/update/`, data);
 export const deleteUser = () => axiosInstance.delete(`user/delete/`);

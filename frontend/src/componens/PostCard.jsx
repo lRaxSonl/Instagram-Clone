@@ -8,6 +8,7 @@ import { likePost, deleteLike } from "../api/likes";
 import { CommentCard } from "./CommentCard";
 import { PostMenu } from "./forms/PostMenu";
 import { deletePost } from "../api/posts";
+import { slugify } from "../utils/slugify";
 
 export const PostCard = ({ post, currentUser }) => {
   const [liked, setLiked] = useState(false);
@@ -84,13 +85,16 @@ export const PostCard = ({ post, currentUser }) => {
     return null; //Не рендерим пост, если он удален
   }
 
+  const userSlug = slugify(`${currentUser.username}`);
+
   return (
     <div className="post-card">
       {/* Заголовок поста: аватар + имя */}
       <div className="post-header">
+        <a className="profile-link" href={`/profile/${userSlug}-${currentUser.id}`}>
         <img src={post.user.avatar || defaultAvatar} alt="avatar" className="avatar" />
         <span className="username">{post.user.username}</span>
-
+        </a>
         {/* Меню с три точками */}
         <div className="post-menu-wrapper">
           <PostMenu onPostDelete={handleDeletePost} />

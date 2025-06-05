@@ -14,7 +14,7 @@ export const Header = ({ currentUser }) => {
     <header className="instagram-header">
       {/* Левая часть — лого или название */}
       <div className="header-left">
-        <span className="logo">InstaClone</span>
+        <a className="feed-link" href="/feed"><span className="logo">InstaClone</span></a>
       </div>
 
       {/* Правая часть — аватар и никнейм */}
