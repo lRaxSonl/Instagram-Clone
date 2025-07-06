@@ -1,0 +1,12 @@
+services:
+  backend:
+    #TODO
+  
+  frontend:
+    #TODO
+
+  db:
+    #TODO
+
+  cache:
+    #TODO

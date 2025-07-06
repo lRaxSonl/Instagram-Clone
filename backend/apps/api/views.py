@@ -1,23 +1,51 @@
-from django.views.generic import CreateView
-from rest_framework import status, viewsets, serializers
+from rest_framework import status, serializers
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import UpdateAPIView, CreateAPIView, get_object_or_404
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from django.core.cache import cache
 
+from config import settings
 from .serializer import PostSerializer, CustomTokenObtainPairSerializer, UserSerializer, CommentSerializer, \
-    LikeSerializer, SubscriptionSerializer
+    LikeSerializer, SubscriptionSerializer, CustomTokenRefreshSerializer
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.posts.models import Post, Comment, Like
 from ..users.models import User, Subscription
+import jwt
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
+class CustomRefreshView(TokenRefreshView):
+    serializer_class = CustomTokenRefreshSerializer
+
+class RefreshTokensBlacklist(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        refresh_token = request.data.get('refresh_token')
+        if not refresh_token:
+            return Response({"error": "Refresh Token is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            decode = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=['HS256'])
+            exp = decode['exp']
+            iat = decode['iat']
+            ttl = max(exp - iat, 0)
+
+            cache.set(refresh_token, True,  timeout=ttl)
+            print(f"key {refresh_token} was successfully added to cache")
+
+            return Response({"details": "Refresh token was successfully added to blacklist"}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print(e)
+            return Response({"error": "Something wrong"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 

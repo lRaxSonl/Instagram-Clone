@@ -1,7 +1,8 @@
 from django.contrib.auth.hashers import make_password
 from django.utils.timezone import now
+from django.core.cache import cache
 from rest_framework import serializers
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from apps.posts.models import Post, Comment, Like
 from apps.users.models import User, Subscription
 
@@ -20,6 +21,20 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     #     data = super().validate(attrs)
     #     data['username'] = self.user.username
     #     return data
+
+
+class CustomTokenRefreshSerializer(TokenRefreshSerializer):
+    def validate(self, attrs):
+        refresh = attrs.get('refresh')
+
+        if not refresh:
+            raise serializers.ValidationError({"details": "Refresh required"}, code=400)
+
+        if refresh and cache.get(str(refresh)):
+            raise serializers.ValidationError({"details": "Token is blacklisted"}, code=400)
+
+        data = super().validate(attrs)
+        return data
 
 
 

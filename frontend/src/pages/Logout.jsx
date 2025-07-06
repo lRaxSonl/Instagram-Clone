@@ -1,16 +1,32 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { addRefreshTokenToBlacklist } from '../api/auth';
 
 const Logout = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    //Delete tokens
-    localStorage.removeItem('access');
-    localStorage.removeItem('refresh');
+    const handleLogout = async () => {
+      const refreshToken = localStorage.getItem('refresh');
 
-    //Redirect to login page
-    navigate('/', { replace: true });
+      // Удаляем токены
+      localStorage.removeItem('access');
+      localStorage.removeItem('refresh');
+
+      // Отправляем refresh-токен в чёрный список
+      if (refreshToken) {
+        try {
+          await addRefreshTokenToBlacklist({ refresh_token: refreshToken });
+        } catch (error) {
+          console.error('Не удалось добавить токен в чёрный список', error);
+        }
+      }
+
+      // Перенаправляем пользователя
+      navigate('/', { replace: true });
+    };
+
+    handleLogout();
   }, [navigate]);
 
   return null;

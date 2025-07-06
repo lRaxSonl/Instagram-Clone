@@ -4,7 +4,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-w%d#d%6d)j_tb8c*-0mmu9^1g*cveob9xre7#9i6b7@9_*4ey='
+SECRET_KEY = 'django-insecure-w%d#d%6d)j_tb8c*-0mmu9^1g*cveob9xre7#9i6b7@9_*4ey=hergt'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -142,6 +142,15 @@ DATABASES = {
     }
 }
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/0',  # Redis по адресу localhost:6379, DB 0
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
 
 
 AUTH_PASSWORD_VALIDATORS = [
