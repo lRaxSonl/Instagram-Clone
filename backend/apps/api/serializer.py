@@ -1,3 +1,6 @@
+import re
+
+import bleach
 from django.utils.timezone import now
 from django.core.cache import cache
 from rest_framework import serializers
@@ -41,8 +44,6 @@ class CustomTokenRefreshSerializer(TokenRefreshSerializer):
 class UserSerializer(serializers.ModelSerializer):
     avatar = serializers.ImageField(allow_null=True, required=False)
     password = serializers.CharField(write_only=True, required=False)
-    email = serializers.EmailField(required=False)
-    username = serializers.CharField(required=False)
 
     class Meta:
         model = User
@@ -50,17 +51,14 @@ class UserSerializer(serializers.ModelSerializer):
 
     def validate_email(self, value):
         """Проверяем, существует ли уже пользователь с таким email."""
-        if not value:
-            return
-
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError('This email is already in use.')
         return value
 
     def validate_username(self, value):
         """Проверяем, существует ли уже пользователь с таким username."""
-        if not value:
-            return
+        if value and not re.match(r'^[a-zA-Z0-9_-]+$', value):
+            raise serializers.ValidationError('This username is invalid.')
 
         if User.objects.filter(username=value).exists():
             raise serializers.ValidationError('This username is already in use.')
@@ -100,6 +98,9 @@ class PostSerializer(serializers.ModelSerializer):
         likes = Like.objects.filter(post=obj)
         return LikeSerializer(likes, many=True).data
         #return obj.likes.values_list('user_id', flat=True)
+
+    def validate_test(self, value):
+        return bleach.clean(value, tags=['p', 'b', 'i'], strip=True)
 
     def create(self, validated_data):
         return super().create(validated_data)

@@ -9,9 +9,7 @@ from apps.common.models import AbstractModel
 
 def make_path_to_file(instance, filename):
     year = datetime.now().year
-
     unique_filename = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6)) + f'_{filename}'
-
     return os.path.join(settings.MEDIA_ROOT, str(year), unique_filename)
 
 class Post(AbstractModel):
