@@ -2,7 +2,6 @@ from rest_framework import status, serializers
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import UpdateAPIView, CreateAPIView, get_object_or_404
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.core.cache import cache
 
@@ -113,8 +112,8 @@ class UserRegisterView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserView(APIView):
-    def get(self, request, id):
-        serializer = UserSerializer(get_object_or_404(User, id=id))
+    def get(self, request, pk):
+        serializer = UserSerializer(get_object_or_404(User, id=pk))
         return Response(serializer.data)
 
 

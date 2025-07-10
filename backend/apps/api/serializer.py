@@ -1,4 +1,3 @@
-from django.contrib.auth.hashers import make_password
 from django.utils.timezone import now
 from django.core.cache import cache
 from rest_framework import serializers
@@ -42,6 +41,8 @@ class CustomTokenRefreshSerializer(TokenRefreshSerializer):
 class UserSerializer(serializers.ModelSerializer):
     avatar = serializers.ImageField(allow_null=True, required=False)
     password = serializers.CharField(write_only=True, required=False)
+    email = serializers.EmailField(required=False)
+    username = serializers.CharField(required=False)
 
     class Meta:
         model = User
@@ -49,12 +50,18 @@ class UserSerializer(serializers.ModelSerializer):
 
     def validate_email(self, value):
         """Проверяем, существует ли уже пользователь с таким email."""
+        if not value:
+            return
+
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError('This email is already in use.')
         return value
 
     def validate_username(self, value):
         """Проверяем, существует ли уже пользователь с таким username."""
+        if not value:
+            return
+
         if User.objects.filter(username=value).exists():
             raise serializers.ValidationError('This username is already in use.')
         return value
@@ -67,12 +74,12 @@ class UserSerializer(serializers.ModelSerializer):
 
         request = self.context.get('request') #Получаем запрос
 
-        if request.user != instance.user:
+        if request.user != instance:
             raise serializers.ValidationError('You can only update your own account.')
 
         for attr, value in validated_data.items():
             if attr == "password":
-                value = make_password(value)
+                value = instance.set_password(value) #!!!
             setattr(instance, attr, value)
 
         instance.save()
