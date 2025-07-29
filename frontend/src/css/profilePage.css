@@ -44,7 +44,7 @@
   color: #8e8e8e;
 }
 
-.edit-profile-button {
+.profile-button {
   margin-top: 15px;
   align-self: start;
   background-color: #363636;
@@ -55,6 +55,10 @@
   cursor: pointer;
   color: #ddd;
   transition: background-color 0.2s ease;
+}
+
+.create-post-button {
+  margin-left: 10px;
 }
 
 .subscribe-button {
@@ -74,7 +78,7 @@
   background-color: #4150f7;
 }
 
-.edit-profile-button:hover {
+.profile-button:hover {
   background-color: #ddd;
   color: #363636;
 }

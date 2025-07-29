@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
     getUser,
-    getUserSubcrtiptions,
+    getUserSubcriptions,
     getUserSubscribers,
     getCurrentUser,
     createSubcription,
@@ -14,6 +14,8 @@ import "../css/profilePage.css";
 import defaultAvatar from "../img/avatars/default-avatar.png";
 import { useParams } from "react-router-dom";
 import { Header } from "../componens/Header";
+import { jwtDecode } from "jwt-decode";
+import AddPostForm from "../componens/forms/AddPostForm"
 
 const ProfilePage = () => {
     const [user, setUser] = useState(null);
@@ -25,13 +27,13 @@ const ProfilePage = () => {
     const [error, setError] = useState(null);
     const [selectedPost, setSelectedPost] = useState(null); // Модальное окно поста
     const [isFollowing, setIsFollowing] = useState(false);   // Состояние подписки
+    const [isPostFormOpen, setIsPostFormOpen] = useState(false); // Состояние для формы
     const { slug } = useParams();
 
     // Получаем ID пользователя из URL
     const getId = () => {
-        const parts = slug.split("-");
-        const id = parseInt(parts[parts.length - 1], 10);
-        return isNaN(id) ? null : id;
+        const token = localStorage.getItem("access")
+        return jwtDecode(token).user_id
     };
 
     const handleFollowToggle = async () => {
@@ -64,6 +66,11 @@ const ProfilePage = () => {
         }
     };
 
+      const handlePostCreated = (newPost) => {
+        setPosts((prev) => [newPost, ...prev]); // Добавляем новый пост в начало
+        setIsPostFormOpen(false); // Закрываем форму
+    };
+
     useEffect(() => {
         let isMounted = true;
 
@@ -85,7 +92,7 @@ const ProfilePage = () => {
                 //Параллельно запрашиваем данные
                 const [followersRes, followingRes, postsRes, currentUserRes] = await Promise.all([
                     getUserSubscribers(userId),
-                    getUserSubcrtiptions(userId),
+                    getUserSubcriptions(userId),
                     getPostsByUser(userId),
                     getCurrentUser(),
                 ]);
@@ -170,7 +177,11 @@ const ProfilePage = () => {
 
                     {/* Кнопка редактирования профиля */}
                     {currentUser && currentUser.id === user.id && (
-                        <button className="edit-profile-button">Редактировать профиль</button>
+                        <div className="profile-actions">
+                        <button className="profile-button">Редактировать профиль</button>
+                        
+                        <button className="profile-button create-post-button" onClick={() => setIsPostFormOpen(true)}>Создать пост</button>
+                        </div>
                     )}
                 </div>
             </div>
@@ -204,6 +215,12 @@ const ProfilePage = () => {
                     </div>
                 </div>
             )}
+
+            <AddPostForm
+            isOpen={isPostFormOpen}
+            onClose={() => setIsPostFormOpen(false)}
+            onPostCreated={handlePostCreated}
+            />
         </div>
         </>
     );
