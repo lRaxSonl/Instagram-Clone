@@ -1,4 +1,6 @@
-from django.contrib.auth.hashers import make_password
+import re
+
+import bleach
 from django.utils.timezone import now
 from django.core.cache import cache
 from rest_framework import serializers
@@ -55,6 +57,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     def validate_username(self, value):
         """Проверяем, существует ли уже пользователь с таким username."""
+        if value and not re.match(r'^[a-zA-Z0-9_-]+$', value):
+            raise serializers.ValidationError('This username is invalid.')
+
         if User.objects.filter(username=value).exists():
             raise serializers.ValidationError('This username is already in use.')
         return value
@@ -67,12 +72,12 @@ class UserSerializer(serializers.ModelSerializer):
 
         request = self.context.get('request') #Получаем запрос
 
-        if request.user != instance.user:
+        if request.user != instance:
             raise serializers.ValidationError('You can only update your own account.')
 
         for attr, value in validated_data.items():
             if attr == "password":
-                value = make_password(value)
+                value = instance.set_password(value) #!!!
             setattr(instance, attr, value)
 
         instance.save()
@@ -93,6 +98,9 @@ class PostSerializer(serializers.ModelSerializer):
         likes = Like.objects.filter(post=obj)
         return LikeSerializer(likes, many=True).data
         #return obj.likes.values_list('user_id', flat=True)
+
+    def validate_test(self, value):
+        return bleach.clean(value, tags=['p', 'b', 'i'], strip=True)
 
     def create(self, validated_data):
         return super().create(validated_data)
