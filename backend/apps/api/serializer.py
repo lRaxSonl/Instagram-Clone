@@ -5,7 +5,7 @@ from django.utils.timezone import now
 from django.core.cache import cache
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
-from apps.posts.models import Post, Comment, Like
+from apps.posts.models import Post, Comment, Like, Tag
 from apps.users.models import User, Subscription
 
 
@@ -83,27 +83,73 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+class TagSerializer(serializers.ModelSerializer):
+    posts = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+
+    class Meta:
+        model = Tag
+        fields = ('id', 'text', 'posts')
+
+    def validate_text(self, value):
+        if value and value[0] != '#':
+            value = f'#{value}'
+        pattern = re.compile(r'^#[a-zA-Zа-яА-ЯёЁ0-9_]+$', re.UNICODE)
+
+        if not bool(pattern.fullmatch(value)):
+            raise serializers.ValidationError('This tag is invalid.')
+        return value
+
 
 #Post list
 class PostSerializer(serializers.ModelSerializer):
     #user = serializers.PrimaryKeyRelatedField(read_only=True)
     user = UserSerializer(read_only=True)
     likes = serializers.SerializerMethodField()
+    tags = TagSerializer(many=True, write_only=True, required=False)
+    readable_tags = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ('id', 'text', 'image', 'user', 'created_at', 'updated_at', 'likes')
+        fields = ('id', 'text', 'image', 'user', 'created_at', 'updated_at', 'tags', 'readable_tags', 'likes')
 
     def get_likes(self, obj):
         likes = Like.objects.filter(post=obj)
         return LikeSerializer(likes, many=True).data
         #return obj.likes.values_list('user_id', flat=True)
 
-    def validate_test(self, value):
+    # def get_tags(self, obj):
+    #     tags = Tag.objects.filter(post=obj)
+    #     return TagSerializer(tags, many=True).data
+
+    def get_readable_tags(self, obj):
+        return TagSerializer(obj.tags.all(), many=True).data
+
+    def validate_text(self, value):
         return bleach.clean(value, tags=['p', 'b', 'i'], strip=True)
 
+    def normalize_tag_text(self, text):
+        if text and text[0] != '#':
+            text = f'#{text}'
+        pattern = re.compile(r'^#[a-zA-Zа-яА-ЯёЁ0-9_]+$', re.UNICODE)
+        if not pattern.fullmatch(text):
+            raise serializers.ValidationError(f"Invalid tag: {text}")
+        return text
+
     def create(self, validated_data):
-        return super().create(validated_data)
+        tags_data = validated_data.pop('tags', [])
+        post = Post.objects.create(**validated_data)
+
+        for tag_dict in tags_data:
+            raw_text = tag_dict.get('text')
+            if raw_text:
+                try:
+                    normalized_text = self.normalize_tag_text(raw_text)
+                    tag, _ = Tag.objects.get_or_create(text=normalized_text)
+                    post.tags.add(tag)
+                except serializers.ValidationError as e:
+                    raise serializers.ValidationError({"tags": str(e)})
+
+        return post
 
     def update(self, instance, validated_data):
         request = self.context.get('request')

@@ -16,6 +16,7 @@ class Post(AbstractModel):
     image = models.ImageField(upload_to=make_path_to_file, null=True, blank=True)
     text = models.TextField(null=False)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=False, related_name='posts')
+    tags = models.ManyToManyField('Tag', blank=True, related_name='post')
 
     def __str__(self):
         return f'Post {self.id} by {self.user}'
@@ -44,4 +45,12 @@ class Like(AbstractModel):
 
     def __str__(self):
         return f'Like by {self.user}'
+
+class Tag(AbstractModel):
+    text = models.TextField(null=False, unique=True, max_length=50)
+
+    def __str__(self):
+        return f'Tag {self.id}, {self.text}'
+
+
 
