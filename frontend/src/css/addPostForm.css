@@ -1,25 +1,27 @@
 /* Общий стиль для модального окна */
+
+
+
 .add-post-overlay {
-  position: fixed;
+  position: fixed; 
   inset: 0;
   background: rgba(0, 0, 0, 0.75);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 50;
+  z-index: 60;
 }
 
 .add-post-modal {
   background: #fff;
   border-radius: 12px;
   padding: 24px;
-  width: 100%;
   max-width: 400px;
   margin: 16px;
-  position: relative;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  align-items: center;
-  
+  z-index: 70;
+  width: 90%;
+  max-width: 400px;
 }
 
 /* Шапка модального окна */
