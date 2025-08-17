@@ -9,6 +9,7 @@ RUN npm install
 
 COPY . .
 
+
 #Открываем порт разработки React (по умолчанию 3000)
 EXPOSE 3000
 

@@ -2,18 +2,17 @@ networks:
   instagram-network:
 
 services:
-
   backend:
     networks:
-    - instagram-network
+      - instagram-network
+
     build:
       context: ./backend
     container_name: django_backend
     volumes:
       - ./backend:/app
-      - sqlite_db:/app  # монтируем в папку, не в файл
-    ports:
-      - "8000:8000"
+      - ./backend/db.sqlite3:/app/db.sqlite3  # монтируем в файл в контейнере
+    ports: []
     depends_on:
       - cache
     environment:
@@ -22,15 +21,15 @@ services:
 
   frontend:
     networks:
-    - instagram-network
+      - instagram-network
+
     build:
       context: ./frontend
     container_name: react_frontend
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    ports:
-      - "3000:3000"
+    ports: []
     environment:
       - CHOKIDAR_USEPOLLING=true
     depends_on:
@@ -38,11 +37,27 @@ services:
 
   cache:
     networks:
-    - instagram-network
+      - instagram-network
+
     image: redis:7
     container_name: redis_cache
     ports:
       - "6379:6379"
+
+
+  nginx:
+    networks:
+      - instagram-network
+
+    image: nginx:latest
+    container_name: nginx_server
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - frontend
+      - backend
 
 volumes:
   sqlite_db:
