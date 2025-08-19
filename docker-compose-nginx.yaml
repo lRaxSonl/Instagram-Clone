@@ -3,21 +3,7 @@ networks:
 
 services:
   backend:
-    networks:
-      - instagram-network
-
-    build:
-      context: ./backend
-    container_name: django_backend
-    volumes:
-      - ./backend:/app
-      - ./backend/db.sqlite3:/app/db.sqlite3  # монтируем в файл в контейнере
-    ports: []
-    depends_on:
-      - cache
-    environment:
-      - DEBUG=1
-      - REDIS_URL=redis://cache:6379
+    # In development
 
   frontend:
     networks:

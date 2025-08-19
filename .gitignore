@@ -1,27 +1,20 @@
-#💾 Python & Django
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.sqlite3
-*.sqlite
-db.sqlite3
-.env
-*.env
-venv/
-env/
-instance/
-.mypy_cache/
-.coverage
-htmlcov/
-*.log
-logs/
-media/
-staticfiles/
+# 💾 Java & Spring Boot
+target/
+build/
+out/
+bin/
+*.class
+*.war
+*.ear
+*.jar
 
-#🚀 Django Migrations
-**/migrations/*.py
-!**/migrations/__init__.py
+# 🚀 Maven
+.mvn/
+.settings/
+.classpath
+.project
+dependency-reduced-pom.xml
+release.properties
 
 # 📦 Node.js & React
 node_modules/
