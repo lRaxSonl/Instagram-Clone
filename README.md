@@ -43,3 +43,5 @@ In Development
 ## ⚙️ Notes
 
 * At the current stage of development, the backend part of the project is being rewritten in java.
+
+
