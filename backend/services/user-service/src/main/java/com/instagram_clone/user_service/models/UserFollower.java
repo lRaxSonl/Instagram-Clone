@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 public class UserFollower extends AbstractModel {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

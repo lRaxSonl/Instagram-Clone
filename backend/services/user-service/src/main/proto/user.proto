@@ -1,0 +1,53 @@
+syntax = "proto3";
+package user.v1;
+import "google/protobuf/timestamp.proto";
+
+
+service UserService {
+  rpc getUserById(GetUserByIdRequest) returns (UserResponse);
+  rpc getSecureDetailsUser(GetUserByIdRequest) returns (UserSecuredResponse);
+  rpc registerUser(UserSecuredRequest) returns (UserResponse);
+}
+
+message GetUserByIdRequest {
+  int64 id = 1;
+}
+
+message UserSecuredRequest {
+  UserWithCredentials userWithCredentials = 1;
+}
+
+message UserResponse {
+  User user = 1;
+}
+
+//For authentication and authorization
+message UserSecuredResponse {
+  UserWithCredentials secureUser = 1;
+}
+
+
+message User {
+  int64 id = 1;
+  string username = 2;
+  string firstname = 3;
+  string lastname = 4;
+  string avatar = 5;
+  string bio = 6;
+  string email = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp date_of_birth = 9;
+}
+
+message UserWithCredentials {
+  int64 id = 1;
+  string username = 2;
+  string password = 3;
+  string firstname = 4;
+  string lastname = 5;
+  string avatar = 6;
+  string bio = 7;
+  string email = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp date_of_birth = 10;
+}
