@@ -8,10 +8,10 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.grpc.server.service.GrpcService;
 import user.v1.UserOuterClass;
 import user.v1.UserServiceGrpc;
+import com.instagram_clone.user_service.utils.PasswordHasher;
 
 
 @GrpcService
@@ -25,17 +25,36 @@ public class UserGrpcService extends UserServiceGrpc.UserServiceImplBase {
     public void getUserById(UserOuterClass.GetUserByIdRequest request,
                             StreamObserver<UserOuterClass.UserResponse> responseObserver) {
 
-        User user = userRepository.findById(request.getId()).orElseThrow(() ->
-                new RuntimeException("User not found"));
+        try {
+            User user = userRepository.findById(request.getId())
+                    .orElseThrow(() -> new RuntimeException("User with id " + request.getId() + " not found"));
 
-        UserOuterClass.User userMapperGrpc = userMapper.toGrpc(user);
-        UserOuterClass.UserResponse userResponse = UserOuterClass.UserResponse.
-                newBuilder()
-                .setUser(userMapperGrpc)
-                .build();
 
-        responseObserver.onNext(userResponse);
-        responseObserver.onCompleted();
+            UserOuterClass.User userMapperGrpc = userMapper.toGrpc(user);
+            UserOuterClass.UserResponse userResponse = UserOuterClass.UserResponse
+                    .newBuilder()
+                    .setUser(userMapperGrpc)
+                    .build();
+
+            responseObserver.onNext(userResponse);
+            responseObserver.onCompleted();
+
+        } catch (RuntimeException e) {
+            log.error("User not found: {}", e.getMessage());
+            responseObserver.onError(
+                    Status.NOT_FOUND
+                            .withDescription(e.getMessage())
+                            .asRuntimeException()
+            );
+        } catch (Exception e) {
+            log.error("Unexpected error while fetching user: {}", e.getMessage(), e);
+
+            responseObserver.onError(
+                    Status.INTERNAL
+                            .withDescription("Internal server error")
+                            .asRuntimeException()
+            );
+        }
     }
 
     @Override
@@ -43,7 +62,6 @@ public class UserGrpcService extends UserServiceGrpc.UserServiceImplBase {
                              StreamObserver<UserOuterClass.UserResponse> responseObserver) {
         //https://www.youtube.com/watch?v=SMy4CaxizbA
         //https://www.youtube.com/watch?v=Bj7g8voWJNU
-
 
         UserOuterClass.UserWithCredentials grpcUser = request.getUserWithCredentials();
 
@@ -75,16 +93,23 @@ public class UserGrpcService extends UserServiceGrpc.UserServiceImplBase {
             return;
         }
 
-        //user = userRepository.save(user);
+        try {
+            String hashedPassword = PasswordHasher.hashPassword(user.getPassword());
+            user.setPassword(hashedPassword);
+
+            user = userRepository.save(user);
 
 
-        UserOuterClass.User responseUser = userMapper.toGrpc(user);
+            UserOuterClass.User responseUser = userMapper.toGrpc(user);
 
-        UserOuterClass.UserResponse response = UserOuterClass.UserResponse.newBuilder()
-                .setUser(responseUser)
-                .build();
+            UserOuterClass.UserResponse response = UserOuterClass.UserResponse.newBuilder()
+                    .setUser(responseUser)
+                    .build();
 
-        responseObserver.onNext(response);
-        responseObserver.onCompleted();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
     }
 }

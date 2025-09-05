@@ -10,6 +10,7 @@ import user.v1.UserOuterClass;
 public interface UserGrpcMapper {
     // gRPC -> Entity
 
+    @Mapping(target = "id", ignore = true)
     User toEntity(UserOuterClass.UserWithCredentials grpcUser);
 
     User toEntity(UserOuterClass.User grpcUser);
