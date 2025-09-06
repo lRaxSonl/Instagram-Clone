@@ -1,5 +1,6 @@
 package com.instagram_clone.user_service.services;
 
+import com.instagram_clone.user_service.exceptions.NotFoundException;
 import com.instagram_clone.user_service.interfaces.mappers.UserGrpcMapper;
 import com.instagram_clone.user_service.interfaces.repositories.UserRepository;
 import com.instagram_clone.user_service.models.User;
@@ -21,13 +22,14 @@ public class UserGrpcService extends UserServiceGrpc.UserServiceImplBase {
     private final UserGrpcMapper userMapper;
     private final UserRepository userRepository;
 
+    //Standard user request from frontend
     @Override
     public void getUserById(UserOuterClass.GetUserByIdRequest request,
                             StreamObserver<UserOuterClass.UserResponse> responseObserver) {
 
         try {
             User user = userRepository.findById(request.getId())
-                    .orElseThrow(() -> new RuntimeException("User with id " + request.getId() + " not found"));
+                    .orElseThrow(() -> new NotFoundException("User with id " + request.getId() + " not found"));
 
 
             UserOuterClass.User userMapperGrpc = userMapper.toGrpc(user);
@@ -39,7 +41,7 @@ public class UserGrpcService extends UserServiceGrpc.UserServiceImplBase {
             responseObserver.onNext(userResponse);
             responseObserver.onCompleted();
 
-        } catch (RuntimeException e) {
+        } catch (NotFoundException e) {
             log.error("User not found: {}", e.getMessage());
             responseObserver.onError(
                     Status.NOT_FOUND
@@ -57,11 +59,46 @@ public class UserGrpcService extends UserServiceGrpc.UserServiceImplBase {
         }
     }
 
+    //Internal request service to service
+    @Override
+    public void getSecureDetailsUser(UserOuterClass.GetUserByIdRequest request,
+                                     StreamObserver<UserOuterClass.UserSecuredResponse> responseObserver) {
+
+        try {
+            User user = userRepository.findById(request.getId())
+                    .orElseThrow(() -> new NotFoundException("User with id " + request.getId() + " not found"));
+
+
+            UserOuterClass.UserWithCredentials userMapperGrpc = userMapper.toGrpcWithCredentials(user);
+            UserOuterClass.UserSecuredResponse userSecuredResponse = UserOuterClass.UserSecuredResponse
+                    .newBuilder()
+                    .setSecureUser(userMapperGrpc)
+                    .build();
+
+            responseObserver.onNext(userSecuredResponse);
+            responseObserver.onCompleted();
+
+        } catch (NotFoundException e) {
+            responseObserver.onError(
+                    Status.NOT_FOUND
+                            .withDescription(e.getMessage())
+                            .asRuntimeException()
+            );
+        } catch (Exception e) {
+            log.error("Unexpected error while fetching user: {}", e.getMessage(), e);
+
+            responseObserver.onError(
+                    Status.INTERNAL
+                            .withDescription("Internal server error")
+                            .asRuntimeException()
+            );
+        }
+    }
+
+    //User registration
     @Override
     public void registerUser(UserOuterClass.UserSecuredRequest request,
                              StreamObserver<UserOuterClass.UserResponse> responseObserver) {
-        //https://www.youtube.com/watch?v=SMy4CaxizbA
-        //https://www.youtube.com/watch?v=Bj7g8voWJNU
 
         UserOuterClass.UserWithCredentials grpcUser = request.getUserWithCredentials();
 
