@@ -3,6 +3,7 @@ package com.instagram_clone.user_service.models;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +13,7 @@ import java.util.Set;
 @Entity
 @Table(name = "users")
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class User extends AbstractModel {

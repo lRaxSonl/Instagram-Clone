@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserSettings extends AbstractModel {

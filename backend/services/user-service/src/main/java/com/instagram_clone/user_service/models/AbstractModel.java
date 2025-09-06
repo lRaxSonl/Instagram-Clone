@@ -2,10 +2,8 @@ package com.instagram_clone.user_service.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+
 
 
 @MappedSuperclass
@@ -17,4 +15,11 @@ abstract class AbstractModel {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
 }

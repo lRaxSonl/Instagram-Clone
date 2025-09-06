@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserFollower extends AbstractModel {
